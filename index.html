@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React CRM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --cobalt: #2563EB;
+    --copper: #C17B3C;
+    --copper-light: #D4933F;
+    --ink: #111827;
+    --pearl: #F8FAFC;
+    --border: #E2E8F0;
+    --muted: #64748B;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --success: #16A34A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--pearl);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { max-width: 900px; margin: 0 auto; min-height: 100vh; background: var(--white); }
+
+  .auth-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--ink);
+  }
+  .auth-card { background: white; border-radius: 16px; padding: 32px 24px; width: 100%; max-width: 380px; }
+  .auth-logo { font-size: 22px; font-weight: 800; margin-bottom: 4px; text-align: center; }
+  .auth-logo span { color: var(--copper); }
+  .auth-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .auth-tabs { display: flex; gap: 4px; background: var(--pearl); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .auth-tab {
+    flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 700;
+    cursor: pointer; color: var(--muted); border: none; background: transparent;
+  }
+  .auth-tab.active { background: white; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .auth-field input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
+  .auth-btn {
+    width: 100%; padding: 13px; border-radius: 10px; border: none; background: var(--cobalt);
+    color: white; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+  }
+  .auth-btn:disabled { opacity: 0.5; }
+  .auth-error { background: #FEF2F2; color: var(--danger); font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; display: none; }
+  .auth-error.show { display: block; }
+  .auth-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.5; }
+
+  header { background: var(--ink); color: var(--white); padding: 20px 16px; position: sticky; top: 0; z-index: 20; }
+  header .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  header h1 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  header h1 span { color: var(--copper-light); }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .add-btn { background: var(--cobalt); color: white; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; cursor: pointer; }
+  .search-row { display: flex; gap: 8px; }
+  .search-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 14px; }
+  .search-input::placeholder { color: rgba(255,255,255,0.5); }
+
+  .tabs {
+    display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; background: var(--white);
+    border-bottom: 1px solid var(--border); position: sticky; top: 116px; z-index: 19;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--white); color: var(--muted); cursor: pointer; white-space: nowrap;
+  }
+  .tab.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+  .list { padding: 8px 0 100px; }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state h3 { color: var(--ink); font-size: 16px; margin-bottom: 6px; }
+  .empty-state p { font-size: 14px; line-height: 1.5; }
+
+  .lead-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .lead-row:active { background: var(--pearl); }
+  .lead-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; cursor: pointer; }
+  .lead-avatar {
+    width: 40px; height: 40px; border-radius: 10px; background: var(--cobalt); color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  .lead-info { flex: 1; min-width: 0; }
+  .lead-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .lead-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .lead-meta { text-align: right; flex-shrink: 0; }
+  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .status-New { background: #DBEAFE; color: #1D4ED8; }
+  .status-Contacted { background: #FEF3C7; color: #B45309; }
+  .status-Follow-up { background: #FDE68A; color: #92400E; }
+  .status-Booked { background: #D1FAE5; color: #047857; }
+  .status-Closed { background: #E0E7FF; color: #4338CA; }
+  .status-Dead { background: #F1F5F9; color: #64748B; }
+  .follow-date { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .follow-date.overdue { color: var(--danger); font-weight: 600; }
+
+  .quick-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .qa-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: white;
+    display: flex; align-items: center; justify-content: center; font-size: 15px; text-decoration: none; color: var(--ink);
+  }
+  .qa-btn.disabled { opacity: 0.3; pointer-events: none; }
+  .qa-btn:active { background: var(--pearl); }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); z-index: 50; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; width: 100%; max-width: 900px; max-height: 92vh; border-radius: 16px 16px 0 0; overflow-y: auto; animation: slideUp 0.2s ease-out; }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: white; }
+  .modal-header h2 { font-size: 17px; font-weight: 700; }
+  .close-btn { background: var(--pearl); border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; color: var(--muted); cursor: pointer; }
+  .modal-body { padding: 20px; }
+
+  .quick-action-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .qa-big { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--pearl); text-decoration: none; color: var(--ink); font-size: 12px; font-weight: 600; }
+  .qa-big .qa-icon { font-size: 20px; }
+  .qa-big.disabled { opacity: 0.35; pointer-events: none; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; color: var(--ink); background: white; }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field-row { display: flex; gap: 12px; }
+  .field-row .field { flex: 1; }
+
+  .status-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .status-option { padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
+  .status-option.selected { border-color: var(--ink); background: var(--ink); color: white; }
+
+  .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
+  .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+  .btn-primary { background: var(--cobalt); color: white; }
+  .btn-danger { background: white; color: var(--danger); border: 1.5px solid #FCA5A5; flex: 0 0 auto; padding: 13px 18px; }
+  .btn:disabled { opacity: 0.5; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .toast.show { opacity: 1; }
+  .loading-row { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  @media (min-width: 640px) {
+    .modal-overlay { align-items: center; }
+    .modal { border-radius: 16px; max-height: 88vh; margin: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">React <span>CRM</span></div>
+    <div class="auth-sub">Sign in to manage your leads</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignIn" onclick="setAuthMode('signin')">Sign in</button>
+      <button class="auth-tab" id="tabSignUp" onclick="setAuthMode('signup')">Create account</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
+    <div class="auth-note" id="authNote">First time here? Tap "Create account" and set your own password — nobody else sees it.</div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+  <header>
+    <div class="top-row">
+      <h1>React <span>CRM</span></h1>
+      <div class="header-actions">
+        <button class="add-btn" style="background:rgba(255,255,255,0.12)" onclick="openImport()">Import</button>
+        <button class="add-btn" onclick="openNewLead()">+ Add lead</button>
+        <button class="logout-btn" onclick="signOut()">Log out</button>
+      </div>
+    </div>
+    <div class="search-row">
+      <input class="search-input" id="searchInput" placeholder="Search name, phone, or email..." oninput="renderList()">
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="list" id="list">
+    <div class="loading-row">Loading leads...</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">New lead</h2>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="quick-action-row" id="quickActionRow"></div>
+      <div class="field-row">
+        <div class="field">
+          <label>First name</label>
+          <input id="f_first_name" placeholder="Maria">
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <input id="f_last_name" placeholder="Gonzalez">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Phone</label>
+          <input id="f_phone" placeholder="(813) 555-0100" type="tel">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input id="f_email" placeholder="maria@email.com" type="email">
+        </div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <div class="status-picker" id="statusPicker"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Loan type</label>
+          <input id="f_loan_type" placeholder="Purchase, Refi, FHA...">
+        </div>
+        <div class="field">
+          <label>Source</label>
+          <input id="f_source" placeholder="Referral, old lead, past client...">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Next follow-up</label>
+          <input id="f_next_follow_up" type="date">
+        </div>
+        <div class="field">
+          <label>Last contacted</label>
+          <input id="f_last_contacted" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="f_notes" placeholder="Call notes, context, anything worth remembering..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteLead()">Delete</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveLead()">Save lead</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Import leads</h2>
+      <button class="close-btn" onclick="closeImport()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="importStep1">
+        <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:16px">
+          Upload a CSV or Excel file. From Google Sheets: <strong>File → Download → CSV</strong> (or Microsoft Excel), then upload that file here.
+        </p>
+        <div class="field">
+          <label>File</label>
+          <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls" onchange="handleImportFile(event)">
+        </div>
+        <div id="importFileError" style="display:none;background:#FEF2F2;color:var(--danger);font-size:13px;padding:10px 12px;border-radius:8px;margin-top:8px"></div>
+      </div>
+      <div id="importStep2" style="display:none">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px" id="importSummary"></p>
+        <p style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:10px">Match your columns</p>
+        <div id="mappingFields"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="importActionBtn" style="display:none" onclick="runImport()">Import leads</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SUPABASE_URL = 'https://yutslculmlgugedfvzzq.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1dHNsY3VsbWxndWdlZGZ2enpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzY0MjcsImV4cCI6MjEwMzE1MjQyN30.dmX-Wim2qg2ELsYWKMwo6bh6E7XpXB6cK7M3mwZ248w';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STATUSES = ['New','Contacted','Follow-up','Booked','Closed','Dead'];
+let leads = [];
+let activeTab = 'All';
+let editingId = null;
+let authMode = 'signin';
+
+window.addEventListener('error', (e) => {
+  const el = document.getElementById('authError');
+  if (el && document.getElementById('authScreen').style.display !== 'none') {
+    el.textContent = 'Connection issue: ' + (e.message || 'could not reach the server. Try opening this file in a full browser tab instead of a quick preview.');
+    el.classList.add('show');
+  }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const el = document.getElementById('authError');
+  if (el && document.getElementById('authScreen').style.display !== 'none') {
+    el.textContent = 'Connection issue: ' + (e.reason?.message || 'could not reach the server. Try opening this file in a full browser tab instead of a quick preview.');
+    el.classList.add('show');
+  }
+});
+
+window.setAuthMode = setAuthMode;
+window.submitAuth = submitAuth;
+window.signOut = signOut;
+window.openNewLead = openNewLead;
+window.closeModal = closeModal;
+window.saveLead = saveLead;
+window.deleteLead = deleteLead;
+window.renderList = renderList;
+window.openLead = openLead;
+window.setTab = setTab;
+window.openImport = openImport;
+window.closeImport = closeImport;
+window.handleImportFile = handleImportFile;
+window.runImport = runImport;
+
+/* ===== IMPORT ===== */
+const TARGET_FIELDS = [
+  { key: 'first_name', label: 'First name', required: true },
+  { key: 'last_name', label: 'Last name' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'email', label: 'Email' },
+  { key: 'loan_type', label: 'Loan type' },
+  { key: 'source', label: 'Source' },
+  { key: 'notes', label: 'Notes' },
+];
+const HEADER_HINTS = {
+  first_name: ['first name', 'firstname', 'first', 'fname', 'name'],
+  last_name: ['last name', 'lastname', 'last', 'lname', 'surname'],
+  phone: ['phone', 'phone number', 'mobile', 'cell', 'telephone'],
+  email: ['email', 'e-mail', 'email address'],
+  loan_type: ['loan type', 'loan', 'product', 'type'],
+  source: ['source', 'lead source', 'referral'],
+  notes: ['notes', 'note', 'comments', 'comment'],
+};
+let importHeaders = [];
+let importRows = [];
+
+function openImport() {
+  document.getElementById('importStep1').style.display = 'block';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importActionBtn').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importFileError').style.display = 'none';
+  document.getElementById('importOverlay').classList.add('open');
+}
+function closeImport() { document.getElementById('importOverlay').classList.remove('open'); }
+
+function showImportError(msg) {
+  const el = document.getElementById('importFileError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function handleImportFile(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  document.getElementById('importFileError').style.display = 'none';
+
+  if (name.endsWith('.csv')) {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (!results.data.length) { showImportError('No rows found in that file.'); return; }
+        importHeaders = results.meta.fields || [];
+        importRows = results.data;
+        showMappingStep();
+      },
+      error: (err) => showImportError('Could not read that file: ' + err.message),
+    });
+  } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (!rows.length) { showImportError('No rows found in that file.'); return; }
+        importHeaders = Object.keys(rows[0]);
+        importRows = rows;
+        showMappingStep();
+      } catch (err) {
+        showImportError('Could not read that file: ' + err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    showImportError('Please upload a .csv, .xlsx, or .xls file.');
+  }
+}
+
+function guessColumn(fieldKey) {
+  const hints = HEADER_HINTS[fieldKey] || [];
+  for (const h of importHeaders) {
+    const clean = h.toLowerCase().trim();
+    if (hints.includes(clean)) return h;
+  }
+  return '';
+}
+
+function showMappingStep() {
+  document.getElementById('importStep1').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'block';
+  document.getElementById('importActionBtn').style.display = 'block';
+  document.getElementById('importSummary').textContent = `Found ${importRows.length} row${importRows.length === 1 ? '' : 's'}. Match each field below, then import.`;
+
+  const container = document.getElementById('mappingFields');
+  container.innerHTML = TARGET_FIELDS.map(f => {
+    const guess = guessColumn(f.key);
+    const options = ['<option value="">— Skip —</option>']
+      .concat(importHeaders.map(h => `<option value="${h}" ${h === guess ? 'selected' : ''}>${h}</option>`));
+    return `
+      <div class="field">
+        <label>${f.label}${f.required ? ' *' : ''}</label>
+        <select id="map_${f.key}">${options.join('')}</select>
+      </div>
+    `;
+  }).join('');
+}
+
+async function runImport() {
+  const mapping = {};
+  TARGET_FIELDS.forEach(f => {
+    mapping[f.key] = document.getElementById('map_' + f.key).value;
+  });
+
+  if (!mapping.first_name) {
+    showToast('Please map a column to First name');
+    return;
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const payloads = importRows
+    .map(row => {
+      const first = (row[mapping.first_name] || '').toString().trim();
+      if (!first) return null;
+      return {
+        first_name: first,
+        last_name: mapping.last_name ? (row[mapping.last_name] || '').toString().trim() || null : null,
+        phone: mapping.phone ? (row[mapping.phone] || '').toString().trim() || null : null,
+        email: mapping.email ? (row[mapping.email] || '').toString().trim() || null : null,
+        loan_type: mapping.loan_type ? (row[mapping.loan_type] || '').toString().trim() || null : null,
+        source: mapping.source ? ((row[mapping.source] || '').toString().trim() || 'Imported') : 'Imported',
+        notes: mapping.notes ? (row[mapping.notes] || '').toString().trim() || null : null,
+        status: 'New',
+        created_by: user?.id || null,
+      };
+    })
+    .filter(Boolean);
+
+  if (!payloads.length) {
+    showToast('No valid rows to import');
+    return;
+  }
+
+  const btn = document.getElementById('importActionBtn');
+  btn.disabled = true;
+  btn.textContent = `Importing ${payloads.length} lead${payloads.length === 1 ? '' : 's'}...`;
+
+  try {
+    const chunkSize = 500;
+    for (let i = 0; i < payloads.length; i += chunkSize) {
+      const chunk = payloads.slice(i, i + chunkSize);
+      const { error } = await supabase.from('leads').insert(chunk);
+      if (error) throw error;
+    }
+    showToast(`Imported ${payloads.length} lead${payloads.length === 1 ? '' : 's'}`);
+    closeImport();
+    await loadLeads();
+  } catch (err) {
+    showToast('Import error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Import leads';
+  }
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('tabSignIn').classList.toggle('active', mode === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', mode === 'signup');
+  document.getElementById('authSubmitBtn').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('authNote').textContent = mode === 'signin'
+    ? 'New here? Tap "Create account" above.'
+    : 'Pick any email and password — this creates your own private login.';
+  hideAuthError();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideAuthError() { document.getElementById('authError').classList.remove('show'); }
+
+async function submitAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  hideAuthError();
+  if (!email || !password) { showAuthError('Enter an email and password.'); return; }
+  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+  const btn = document.getElementById('authSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = authMode === 'signin' ? 'Signing in...' : 'Creating account...';
+
+  try {
+    if (authMode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      showAuthError("Account created. If email confirmation isn't required, you're signed in now.");
+    }
+  } catch (err) {
+    showAuthError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+  }
+}
+
+async function signOut() { await supabase.auth.signOut(); }
+
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+  loadLeads();
+}
+function showAuth() {
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session) showApp(); else showAuth();
+});
+
+function telLink(phone) { return phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : null; }
+function smsLink(phone) { return phone ? `sms:${phone.replace(/[^0-9+]/g, '')}` : null; }
+function mailLink(email) { return email ? `mailto:${email}` : null; }
+
+function quickActionsHTML(l, big) {
+  const cls = big ? 'qa-big' : 'qa-btn';
+  const call = telLink(l.phone);
+  const text = smsLink(l.phone);
+  const mail = mailLink(l.email);
+  if (big) {
+    return `
+      <a class="${cls} ${!call ? 'disabled' : ''}" href="${call || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">📞</span>Call</a>
+      <a class="${cls} ${!text ? 'disabled' : ''}" href="${text || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">💬</span>Text</a>
+      <a class="${cls} ${!mail ? 'disabled' : ''}" href="${mail || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">✉️</span>Email</a>
+    `;
+  }
+  return `
+    <a class="${cls} ${!call ? 'disabled' : ''}" href="${call || '#'}" onclick="event.stopPropagation()" title="Call">📞</a>
+    <a class="${cls} ${!text ? 'disabled' : ''}" href="${text || '#'}" onclick="event.stopPropagation()" title="Text">💬</a>
+    <a class="${cls} ${!mail ? 'disabled' : ''}" href="${mail || '#'}" onclick="event.stopPropagation()" title="Email">✉️</a>
+  `;
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  const counts = { All: leads.length };
+  STATUSES.forEach(s => counts[s] = leads.filter(l => l.status === s).length);
+  tabs.innerHTML = ['All', ...STATUSES].map(s =>
+    `<button class="tab ${activeTab === s ? 'active' : ''}" onclick="setTab('${s}')">${s} (${counts[s] || 0})</button>`
+  ).join('');
+}
+function setTab(s) { activeTab = s; renderTabs(); renderList(); }
+function initials(l) { return ((l.first_name?.[0] || '') + (l.last_name?.[0] || '')).toUpperCase() || '?'; }
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function isOverdue(d) {
+  if (!d) return false;
+  return new Date(d + 'T00:00:00') < new Date(new Date().toDateString());
+}
+
+function renderList() {
+  const listEl = document.getElementById('list');
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  let filtered = leads;
+  if (activeTab !== 'All') filtered = filtered.filter(l => l.status === activeTab);
+  if (query) {
+    filtered = filtered.filter(l =>
+      `${l.first_name} ${l.last_name}`.toLowerCase().includes(query) ||
+      (l.phone || '').includes(query) ||
+      (l.email || '').toLowerCase().includes(query)
+    );
+  }
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="empty-state">
+      <div class="icon">📋</div>
+      <h3>${leads.length === 0 ? 'No leads yet' : 'No matches'}</h3>
+      <p>${leads.length === 0 ? 'Tap "Add lead" to bring in your first contact from paper.' : 'Try a different search or tab.'}</p>
+    </div>`;
+    return;
+  }
+  listEl.innerHTML = filtered.map(l => `
+    <div class="lead-row">
+      <div class="lead-main" onclick="openLead('${l.id}')">
+        <div class="lead-avatar">${initials(l)}</div>
+        <div class="lead-info">
+          <div class="lead-name">${l.first_name || ''} ${l.last_name || ''}</div>
+          <div class="lead-sub">${l.phone || l.email || 'No contact info'}</div>
+        </div>
+      </div>
+      <div class="lead-meta">
+        <span class="status-badge status-${l.status}">${l.status}</span>
+        ${l.next_follow_up ? `<div class="follow-date ${isOverdue(l.next_follow_up) ? 'overdue' : ''}">Follow up ${fmtDate(l.next_follow_up)}</div>` : ''}
+      </div>
+      <div class="quick-actions">${quickActionsHTML(l, false)}</div>
+    </div>
+  `).join('');
+}
+
+function renderStatusPicker(selected) {
+  const picker = document.getElementById('statusPicker');
+  picker.innerHTML = STATUSES.map(s =>
+    `<div class="status-option ${s === selected ? 'selected' : ''}" data-status="${s}" onclick="selectStatus('${s}')">${s}</div>`
+  ).join('');
+}
+window.selectStatus = function(s) {
+  document.querySelectorAll('.status-option').forEach(el => el.classList.toggle('selected', el.dataset.status === s));
+};
+
+function openNewLead() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'New lead';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('quickActionRow').innerHTML = '';
+  ['first_name','last_name','phone','email','loan_type','source','next_follow_up','last_contacted','notes'].forEach(f => {
+    document.getElementById('f_' + f).value = '';
+  });
+  renderStatusPicker('New');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openLead(id) {
+  const l = leads.find(x => x.id === id);
+  if (!l) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = `${l.first_name} ${l.last_name || ''}`.trim();
+  document.getElementById('deleteBtn').style.display = 'block';
+  document.getElementById('quickActionRow').innerHTML = quickActionsHTML(l, true);
+  document.getElementById('f_first_name').value = l.first_name || '';
+  document.getElementById('f_last_name').value = l.last_name || '';
+  document.getElementById('f_phone').value = l.phone || '';
+  document.getElementById('f_email').value = l.email || '';
+  document.getElementById('f_loan_type').value = l.loan_type || '';
+  document.getElementById('f_source').value = l.source || '';
+  document.getElementById('f_next_follow_up').value = l.next_follow_up || '';
+  document.getElementById('f_last_contacted').value = l.last_contacted || '';
+  document.getElementById('f_notes').value = l.notes || '';
+  renderStatusPicker(l.status);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+async function saveLead() {
+  const firstName = document.getElementById('f_first_name').value.trim();
+  if (!firstName) { showToast('First name is required'); return; }
+
+  const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'New';
+
+  const payload = {
+    first_name: firstName,
+    last_name: document.getElementById('f_last_name').value.trim() || null,
+    phone: document.getElementById('f_phone').value.trim() || null,
+    email: document.getElementById('f_email').value.trim() || null,
+    status: selectedStatus,
+    loan_type: document.getElementById('f_loan_type').value.trim() || null,
+    source: document.getElementById('f_source').value.trim() || null,
+    next_follow_up: document.getElementById('f_next_follow_up').value || null,
+    last_contacted: document.getElementById('f_last_contacted').value || null,
+    notes: document.getElementById('f_notes').value.trim() || null,
+  };
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    if (editingId) {
+      const { error } = await supabase.from('leads').update(payload).eq('id', editingId);
+      if (error) throw error;
+      showToast('Lead updated');
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      payload.created_by = user?.id || null;
+      const { error } = await supabase.from('leads').insert(payload);
+      if (error) throw error;
+      showToast('Lead added');
+    }
+    closeModal();
+    await loadLeads();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save lead';
+  }
+}
+
+async function deleteLead() {
+  if (!editingId) return;
+  if (!confirm('Delete this lead? This cannot be undone.')) return;
+  try {
+    const { error } = await supabase.from('leads').delete().eq('id', editingId);
+    if (error) throw error;
+    showToast('Lead deleted');
+    closeModal();
+    await loadLeads();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+async function loadLeads() {
+  const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+  if (error) {
+    document.getElementById('list').innerHTML = `<div class="empty-state"><h3>Couldn't load leads</h3><p>${error.message}</p></div>`;
+    return;
+  }
+  leads = data || [];
+  renderTabs();
+  renderList();
+}
+</script>
+
+</body>
+</html>
