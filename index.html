@@ -65,6 +65,13 @@
   .search-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 14px; }
   .search-input::placeholder { color: rgba(255,255,255,0.5); }
 
+  .view-toggle { display: flex; gap: 6px; padding: 10px 16px 0; background: var(--white); }
+  .view-toggle-btn {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: white;
+    color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .view-toggle-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+
   .tabs {
     display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; background: var(--white);
     border-bottom: 1px solid var(--border); position: sticky; top: 116px; z-index: 19;
@@ -94,15 +101,23 @@
   .lead-name { font-size: 15px; font-weight: 600; color: var(--ink); }
   .lead-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
   .lead-meta { text-align: right; flex-shrink: 0; }
-  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
-  .status-New { background: #DBEAFE; color: #1D4ED8; }
-  .status-Contacted { background: #FEF3C7; color: #B45309; }
-  .status-Follow-up { background: #FDE68A; color: #92400E; }
-  .status-Booked { background: #D1FAE5; color: #047857; }
-  .status-Closed { background: #E0E7FF; color: #4338CA; }
-  .status-Dead { background: #F1F5F9; color: #64748B; }
+  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+  .status-new-lead { background: #DBEAFE; color: #1D4ED8; }
+  .status-contacted { background: #FEF3C7; color: #B45309; }
+  .status-application { background: #FDE9D0; color: #9A5B1F; }
+  .status-pre-approved { background: #FBD9B0; color: #7C4A15; }
+  .status-under-contract { background: #BFDBFE; color: #1E40AF; }
+  .status-processing { background: #E2E8F0; color: #334155; }
+  .status-underwriting { background: #FDE68A; color: #92400E; }
+  .status-clear-to-close { background: #93C5FD; color: #1E3A8A; }
+  .status-funded { background: #D1FAE5; color: #047857; }
+  .status-post-close { background: #F1F5F9; color: #334155; }
+  .status-dead { background: #F1F5F9; color: #64748B; }
   .follow-date { font-size: 11px; color: var(--muted); margin-top: 4px; }
   .follow-date.overdue { color: var(--danger); font-weight: 600; }
+  .lock-warning { font-size: 11px; margin-top: 4px; font-weight: 600; }
+  .lock-warning.soon { color: var(--copper); }
+  .lock-warning.expired { color: var(--danger); }
 
   .quick-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .qa-btn {
@@ -111,6 +126,39 @@
   }
   .qa-btn.disabled { opacity: 0.3; pointer-events: none; }
   .qa-btn:active { background: var(--pearl); }
+
+  /* Calendar view */
+  .calendar-wrap { padding: 12px 16px 100px; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 14px; }
+  .cal-nav button { background: var(--pearl); border: 1px solid var(--border); border-radius: 8px; width: 34px; height: 34px; font-size: 16px; cursor: pointer; color: var(--ink); }
+  .cal-nav h3 { font-size: 15px; font-weight: 700; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { text-align: center; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; padding-bottom: 6px; }
+  .cal-cell {
+    aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); padding: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    cursor: pointer; font-size: 12px; background: white; position: relative;
+  }
+  .cal-cell.empty { border: none; cursor: default; }
+  .cal-cell.today { border-color: var(--ink); border-width: 1.5px; }
+  .cal-cell.selected { background: var(--ink); color: white; }
+  .cal-cell .cal-daynum { font-weight: 600; }
+  .cal-dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; justify-content: center; }
+  .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .cal-dot.followup { background: var(--cobalt); }
+  .cal-dot.ratelock { background: var(--copper); }
+  .cal-dot.closing { background: var(--success); }
+  .cal-legend { display: flex; gap: 14px; padding: 14px 2px 4px; font-size: 12px; color: var(--muted); }
+  .cal-legend span { display: flex; align-items: center; gap: 5px; }
+  .cal-legend .cal-dot { width: 8px; height: 8px; }
+  .cal-day-panel { margin-top: 16px; }
+  .cal-day-panel h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .cal-event-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: white; }
+  .cal-event-row:active { background: var(--pearl); }
+  .cal-event-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; flex-shrink: 0; }
+  .cal-event-tag.followup { background: #DBEAFE; color: #1D4ED8; }
+  .cal-event-tag.ratelock { background: #FDE9D0; color: #9A5B1F; }
+  .cal-event-tag.closing { background: #D1FAE5; color: #047857; }
 
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); z-index: 50; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
@@ -126,6 +174,9 @@
   .qa-big .qa-icon { font-size: 20px; }
   .qa-big.disabled { opacity: 0.35; pointer-events: none; }
 
+  .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 22px 0 10px; }
+  .section-label:first-child { margin-top: 0; }
+
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
   .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; color: var(--ink); background: white; }
@@ -136,6 +187,16 @@
   .status-picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .status-option { padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
   .status-option.selected { border-color: var(--ink); background: var(--ink); color: white; }
+
+  .activity-log { margin-bottom: 10px; }
+  .activity-entry { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--pearl); }
+  .activity-entry-date { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .activity-entry-note { font-size: 14px; color: var(--ink); line-height: 1.4; }
+  .activity-entry-next { font-size: 13px; color: var(--cobalt); margin-top: 6px; font-weight: 600; }
+  .activity-empty { font-size: 13px; color: var(--muted); padding: 10px 2px; }
+  .activity-add { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1.5px dashed var(--border); border-radius: 10px; }
+  .activity-add input, .activity-add textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+  .activity-add-btn { align-self: flex-end; background: var(--ink); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
   .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
   .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
@@ -192,11 +253,18 @@
     </div>
   </header>
 
+  <div class="view-toggle">
+    <button class="view-toggle-btn" id="viewToggleList" onclick="setView('list')">List</button>
+    <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
+  </div>
+
   <div class="tabs" id="tabs"></div>
 
   <div class="list" id="list">
     <div class="loading-row">Loading leads...</div>
   </div>
+
+  <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -228,7 +296,7 @@
         </div>
       </div>
       <div class="field">
-        <label>Status</label>
+        <label>Loan Stage</label>
         <div class="status-picker" id="statusPicker"></div>
       </div>
       <div class="field-row">
@@ -251,9 +319,27 @@
           <input id="f_last_contacted" type="date">
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Rate lock expires</label>
+          <input id="f_rate_lock_expiration" type="date">
+        </div>
+        <div class="field">
+          <label>Closing date</label>
+          <input id="f_closing_date" type="date">
+        </div>
+      </div>
       <div class="field">
         <label>Notes</label>
-        <textarea id="f_notes" placeholder="Call notes, context, anything worth remembering..."></textarea>
+        <textarea id="f_notes" placeholder="General context worth remembering..."></textarea>
+      </div>
+
+      <div class="section-label">Follow-up log</div>
+      <div class="activity-log" id="activityLog"></div>
+      <div class="activity-add">
+        <input id="activityNote" placeholder="What happened on this call/text/email?">
+        <input id="activityNextStep" placeholder="Next step (optional) — e.g. 'Call back Thursday about rate'">
+        <button type="button" class="activity-add-btn" onclick="addActivityEntry()">+ Add entry</button>
       </div>
     </div>
     <div class="modal-footer">
@@ -301,11 +387,19 @@ const SUPABASE_URL = 'https://yutslculmlgugedfvzzq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1dHNsY3VsbWxndWdlZGZ2enpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzY0MjcsImV4cCI6MjEwMzE1MjQyN30.dmX-Wim2qg2ELsYWKMwo6bh6E7XpXB6cK7M3mwZ248w';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STATUSES = ['New','Contacted','Follow-up','Booked','Closed','Dead'];
+// Loan lifecycle pipeline — replaces the old generic 6-status list.
+const STATUSES = [
+  'New Lead', 'Contacted', 'Application', 'Pre-Approved', 'Under Contract',
+  'Processing', 'Underwriting', 'Clear to Close', 'Funded', 'Post-Close', 'Dead'
+];
 let leads = [];
 let activeTab = 'All';
 let editingId = null;
 let authMode = 'signin';
+let currentView = 'list'; // 'list' | 'calendar'
+let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let selectedCalDay = null; // 'YYYY-MM-DD'
+let editingActivityLog = []; // local working copy while a lead modal is open
 
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
@@ -332,10 +426,40 @@ window.deleteLead = deleteLead;
 window.renderList = renderList;
 window.openLead = openLead;
 window.setTab = setTab;
+window.setView = setView;
 window.openImport = openImport;
 window.closeImport = closeImport;
 window.handleImportFile = handleImportFile;
 window.runImport = runImport;
+window.addActivityEntry = addActivityEntry;
+window.removeActivityEntry = removeActivityEntry;
+window.navCalendar = navCalendar;
+window.selectCalDay = selectCalDay;
+
+/* ===== UTIL ===== */
+function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function fmtDateLong(d) {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+function isOverdue(d) {
+  if (!d) return false;
+  return new Date(d + 'T00:00:00') < new Date(new Date().toDateString());
+}
+function rateLockStatus(d) {
+  if (!d) return null;
+  const target = new Date(d + 'T00:00:00');
+  const today = new Date(new Date().toDateString());
+  const diffDays = Math.round((target - today) / 86400000);
+  if (diffDays < 0) return 'expired';
+  if (diffDays <= 5) return 'soon';
+  return null;
+}
 
 /* ===== IMPORT ===== */
 const TARGET_FIELDS = [
@@ -467,7 +591,8 @@ async function runImport() {
         loan_type: mapping.loan_type ? (row[mapping.loan_type] || '').toString().trim() || null : null,
         source: mapping.source ? ((row[mapping.source] || '').toString().trim() || 'Imported') : 'Imported',
         notes: mapping.notes ? (row[mapping.notes] || '').toString().trim() || null : null,
-        status: 'New',
+        status: 'New Lead',
+        activity_log: [],
         created_by: user?.id || null,
       };
     })
@@ -594,15 +719,18 @@ function renderTabs() {
   ).join('');
 }
 function setTab(s) { activeTab = s; renderTabs(); renderList(); }
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewToggleList').classList.toggle('active', v === 'list');
+  document.getElementById('viewToggleCalendar').classList.toggle('active', v === 'calendar');
+  document.getElementById('tabs').style.display = v === 'list' ? 'flex' : 'none';
+  document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
+  document.getElementById('calendarWrap').style.display = v === 'calendar' ? 'block' : 'none';
+  if (v === 'calendar') renderCalendar();
+}
+
 function initials(l) { return ((l.first_name?.[0] || '') + (l.last_name?.[0] || '')).toUpperCase() || '?'; }
-function fmtDate(d) {
-  if (!d) return '';
-  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-function isOverdue(d) {
-  if (!d) return false;
-  return new Date(d + 'T00:00:00') < new Date(new Date().toDateString());
-}
 
 function renderList() {
   const listEl = document.getElementById('list');
@@ -624,7 +752,9 @@ function renderList() {
     </div>`;
     return;
   }
-  listEl.innerHTML = filtered.map(l => `
+  listEl.innerHTML = filtered.map(l => {
+    const lockStatus = rateLockStatus(l.rate_lock_expiration);
+    return `
     <div class="lead-row">
       <div class="lead-main" onclick="openLead('${l.id}')">
         <div class="lead-avatar">${initials(l)}</div>
@@ -634,12 +764,148 @@ function renderList() {
         </div>
       </div>
       <div class="lead-meta">
-        <span class="status-badge status-${l.status}">${l.status}</span>
+        <span class="status-badge status-${slugify(l.status)}">${l.status}</span>
         ${l.next_follow_up ? `<div class="follow-date ${isOverdue(l.next_follow_up) ? 'overdue' : ''}">Follow up ${fmtDate(l.next_follow_up)}</div>` : ''}
+        ${lockStatus ? `<div class="lock-warning ${lockStatus}">${lockStatus === 'expired' ? 'Lock expired' : 'Lock exp.'} ${fmtDate(l.rate_lock_expiration)}</div>` : ''}
       </div>
       <div class="quick-actions">${quickActionsHTML(l, false)}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
+}
+
+/* ===== CALENDAR ===== */
+function navCalendar(delta) {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
+  selectedCalDay = null;
+  renderCalendar();
+}
+
+function eventsForMonth() {
+  // Map 'YYYY-MM-DD' -> array of {lead, type}
+  const map = {};
+  const push = (dateStr, lead, type) => {
+    if (!dateStr) return;
+    if (!map[dateStr]) map[dateStr] = [];
+    map[dateStr].push({ lead, type });
+  };
+  leads.forEach(l => {
+    push(l.next_follow_up, l, 'followup');
+    push(l.rate_lock_expiration, l, 'ratelock');
+    push(l.closing_date, l, 'closing');
+  });
+  return map;
+}
+
+function selectCalDay(dateStr) {
+  selectedCalDay = dateStr;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const wrap = document.getElementById('calendarWrap');
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const monthLabel = calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const eventMap = eventsForMonth();
+  const today = todayStr();
+
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += `<div class="cal-cell empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const evs = eventMap[dateStr] || [];
+    const types = [...new Set(evs.map(e => e.type))];
+    const isToday = dateStr === today;
+    const isSelected = dateStr === selectedCalDay;
+    cells += `
+      <div class="cal-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectCalDay('${dateStr}')">
+        <div class="cal-daynum">${d}</div>
+        <div class="cal-dots">${types.map(t => `<div class="cal-dot ${t}"></div>`).join('')}</div>
+      </div>
+    `;
+  }
+
+  const dowLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  let panelHTML = '';
+  if (selectedCalDay) {
+    const evs = eventMap[selectedCalDay] || [];
+    const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing' };
+    panelHTML = `
+      <div class="cal-day-panel">
+        <h4>${fmtDateLong(selectedCalDay)}</h4>
+        ${evs.length === 0
+          ? `<div class="activity-empty">Nothing scheduled this day.</div>`
+          : evs.map(e => `
+            <div class="cal-event-row" onclick="openLead('${e.lead.id}')">
+              <span class="cal-event-tag ${e.type}">${tagLabel[e.type]}</span>
+              <div>
+                <div style="font-weight:600;font-size:14px">${e.lead.first_name || ''} ${e.lead.last_name || ''}</div>
+                <div style="font-size:12px;color:var(--muted)">${e.lead.status}</div>
+              </div>
+            </div>
+          `).join('')
+        }
+      </div>
+    `;
+  }
+
+  wrap.innerHTML = `
+    <div class="cal-nav">
+      <button onclick="navCalendar(-1)">‹</button>
+      <h3>${monthLabel}</h3>
+      <button onclick="navCalendar(1)">›</button>
+    </div>
+    <div class="cal-grid">
+      ${dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+    <div class="cal-legend">
+      <span><div class="cal-dot followup"></div>Follow-up</span>
+      <span><div class="cal-dot ratelock"></div>Rate lock</span>
+      <span><div class="cal-dot closing"></div>Closing</span>
+    </div>
+    ${panelHTML}
+  `;
+}
+
+/* ===== ACTIVITY LOG ===== */
+function renderActivityLog() {
+  const el = document.getElementById('activityLog');
+  if (!editingActivityLog.length) {
+    el.innerHTML = `<div class="activity-empty">No follow-up notes yet — log a call, text, or email below.</div>`;
+    return;
+  }
+  const sorted = [...editingActivityLog].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  el.innerHTML = sorted.map((entry, sortedIdx) => {
+    const realIdx = editingActivityLog.indexOf(entry);
+    return `
+      <div class="activity-entry">
+        <div class="activity-entry-date">${fmtDateLong(entry.date)}</div>
+        <div class="activity-entry-note">${entry.note}</div>
+        ${entry.next_step ? `<div class="activity-entry-next">Next: ${entry.next_step}</div>` : ''}
+        <div style="text-align:right;margin-top:6px">
+          <button type="button" onclick="removeActivityEntry(${realIdx})" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addActivityEntry() {
+  const note = document.getElementById('activityNote').value.trim();
+  const nextStep = document.getElementById('activityNextStep').value.trim();
+  if (!note) { showToast('Add a note before saving the entry'); return; }
+  editingActivityLog.push({ date: todayStr(), note, next_step: nextStep || null });
+  document.getElementById('activityNote').value = '';
+  document.getElementById('activityNextStep').value = '';
+  renderActivityLog();
+}
+function removeActivityEntry(idx) {
+  editingActivityLog.splice(idx, 1);
+  renderActivityLog();
 }
 
 function renderStatusPicker(selected) {
@@ -654,13 +920,17 @@ window.selectStatus = function(s) {
 
 function openNewLead() {
   editingId = null;
+  editingActivityLog = [];
   document.getElementById('modalTitle').textContent = 'New lead';
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('quickActionRow').innerHTML = '';
-  ['first_name','last_name','phone','email','loan_type','source','next_follow_up','last_contacted','notes'].forEach(f => {
+  ['first_name','last_name','phone','email','loan_type','source','next_follow_up','last_contacted','rate_lock_expiration','closing_date','notes'].forEach(f => {
     document.getElementById('f_' + f).value = '';
   });
-  renderStatusPicker('New');
+  document.getElementById('activityNote').value = '';
+  document.getElementById('activityNextStep').value = '';
+  renderStatusPicker('New Lead');
+  renderActivityLog();
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -668,6 +938,7 @@ function openLead(id) {
   const l = leads.find(x => x.id === id);
   if (!l) return;
   editingId = id;
+  editingActivityLog = Array.isArray(l.activity_log) ? JSON.parse(JSON.stringify(l.activity_log)) : [];
   document.getElementById('modalTitle').textContent = `${l.first_name} ${l.last_name || ''}`.trim();
   document.getElementById('deleteBtn').style.display = 'block';
   document.getElementById('quickActionRow').innerHTML = quickActionsHTML(l, true);
@@ -679,8 +950,13 @@ function openLead(id) {
   document.getElementById('f_source').value = l.source || '';
   document.getElementById('f_next_follow_up').value = l.next_follow_up || '';
   document.getElementById('f_last_contacted').value = l.last_contacted || '';
+  document.getElementById('f_rate_lock_expiration').value = l.rate_lock_expiration || '';
+  document.getElementById('f_closing_date').value = l.closing_date || '';
   document.getElementById('f_notes').value = l.notes || '';
+  document.getElementById('activityNote').value = '';
+  document.getElementById('activityNextStep').value = '';
   renderStatusPicker(l.status);
+  renderActivityLog();
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -697,7 +973,7 @@ async function saveLead() {
   const firstName = document.getElementById('f_first_name').value.trim();
   if (!firstName) { showToast('First name is required'); return; }
 
-  const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'New';
+  const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'New Lead';
 
   const payload = {
     first_name: firstName,
@@ -709,7 +985,10 @@ async function saveLead() {
     source: document.getElementById('f_source').value.trim() || null,
     next_follow_up: document.getElementById('f_next_follow_up').value || null,
     last_contacted: document.getElementById('f_last_contacted').value || null,
+    rate_lock_expiration: document.getElementById('f_rate_lock_expiration').value || null,
+    closing_date: document.getElementById('f_closing_date').value || null,
     notes: document.getElementById('f_notes').value.trim() || null,
+    activity_log: editingActivityLog,
   };
 
   const saveBtn = document.getElementById('saveBtn');
@@ -761,6 +1040,7 @@ async function loadLeads() {
   leads = data || [];
   renderTabs();
   renderList();
+  if (currentView === 'calendar') renderCalendar();
 }
 </script>
 
