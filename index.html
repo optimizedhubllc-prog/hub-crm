@@ -36,12 +36,6 @@
   .auth-logo { font-size: 22px; font-weight: 800; margin-bottom: 4px; text-align: center; }
   .auth-logo span { color: var(--copper); }
   .auth-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-  .auth-tabs { display: flex; gap: 4px; background: var(--pearl); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
-  .auth-tab {
-    flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 700;
-    cursor: pointer; color: var(--muted); border: none; background: transparent;
-  }
-  .auth-tab.active { background: white; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
   .auth-field { margin-bottom: 14px; }
   .auth-field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
   .auth-field input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
@@ -90,6 +84,11 @@
   .empty-state h3 { color: var(--ink); font-size: 16px; margin-bottom: 6px; }
   .empty-state p { font-size: 14px; line-height: 1.5; }
 
+  /* Skeleton loader */
+  .skeleton-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .skeleton-box { background: linear-gradient(90deg, #EDF1F5 25%, #F6F8FA 37%, #EDF1F5 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: 8px; }
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
   .lead-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
   .lead-row:active { background: var(--pearl); }
   .lead-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; cursor: pointer; }
@@ -100,6 +99,7 @@
   .lead-info { flex: 1; min-width: 0; }
   .lead-name { font-size: 15px; font-weight: 600; color: var(--ink); }
   .lead-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .lead-contact-age { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .lead-meta { text-align: right; flex-shrink: 0; }
   .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
   .status-new-lead { background: #DBEAFE; color: #1D4ED8; }
@@ -126,6 +126,46 @@
   }
   .qa-btn.disabled { opacity: 0.3; pointer-events: none; }
   .qa-btn:active { background: var(--pearl); }
+
+  /* Today view */
+  .today-wrap { padding: 16px; padding-bottom: 100px; }
+  .today-section { margin-bottom: 26px; }
+  .today-section-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px; }
+  .today-section-count { background: var(--ink); color: white; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+  .today-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; background: white; }
+  .today-card:active { background: var(--pearl); }
+  .today-card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .today-card-dot.overdue { background: var(--danger); }
+  .today-card-dot.due { background: var(--cobalt); }
+  .today-card-dot.lock { background: var(--copper); }
+  .today-card-dot.closing { background: var(--success); }
+  .today-card-info { flex: 1; min-width: 0; }
+  .today-card-name { font-size: 14px; font-weight: 600; }
+  .today-card-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .today-empty { font-size: 13px; color: var(--muted); padding: 4px 2px 0; }
+  .today-greeting { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .today-date { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  /* Team / broker dashboard */
+  .broker-filter-banner { display: flex; align-items: center; justify-content: space-between; background: #DBEAFE; color: #1D4ED8; font-size: 13px; font-weight: 600; padding: 10px 16px; }
+  .broker-filter-banner button { background: none; border: none; color: #1D4ED8; font-weight: 700; cursor: pointer; font-size: 15px; }
+  .team-wrap { padding: 16px; padding-bottom: 100px; }
+  .team-header { margin-bottom: 20px; }
+  .team-header h2 { font-size: 19px; font-weight: 700; }
+  .team-header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .team-export-btn { background: var(--ink); color: white; border: none; border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .funnel-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+  .funnel-label { flex: 0 0 120px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .funnel-bar-track { flex: 1; background: var(--pearl); border-radius: 6px; height: 20px; overflow: hidden; }
+  .funnel-bar-fill { background: var(--cobalt); height: 100%; border-radius: 6px; }
+  .funnel-count { flex: 0 0 28px; text-align: right; font-size: 13px; font-weight: 700; }
+  .lo-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; background: white; }
+  .lo-card:active { background: var(--pearl); }
+  .lo-card-avatar { width: 38px; height: 38px; border-radius: 10px; background: var(--copper); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .lo-card-info { flex: 1; min-width: 0; }
+  .lo-card-name { font-size: 14px; font-weight: 600; }
+  .lo-card-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .lo-card-count { font-size: 18px; font-weight: 700; color: var(--ink); }
 
   /* Calendar view */
   .calendar-wrap { padding: 12px 16px 100px; }
@@ -159,8 +199,15 @@
   .cal-event-tag.followup { background: #DBEAFE; color: #1D4ED8; }
   .cal-event-tag.ratelock { background: #FDE9D0; color: #9A5B1F; }
   .cal-event-tag.closing { background: #D1FAE5; color: #047857; }
+  .cal-add-btn { background: none; border: 1.5px dashed var(--border); color: var(--cobalt); font-size: 13px; font-weight: 700; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 6px; }
+  .cal-add-form { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .cal-add-form select, .cal-add-form input, .cal-add-form textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+  .cal-add-form-actions { display: flex; gap: 8px; }
+  .cal-add-form-actions button { flex: 1; padding: 9px; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; }
+  .cal-save-btn { background: var(--ink); color: white; }
+  .cal-cancel-btn { background: var(--pearl); color: var(--muted); }
 
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); z-index: 50; align-items: flex-end; justify-content: center; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.5); z-index: 50; align-items: flex-end; justify-content: center; transition: background 0.15s; }
   .modal-overlay.open { display: flex; }
   .modal { background: white; width: 100%; max-width: 900px; max-height: 92vh; border-radius: 16px 16px 0 0; overflow-y: auto; animation: slideUp 0.2s ease-out; }
   @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -169,10 +216,33 @@
   .close-btn { background: var(--pearl); border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; color: var(--muted); cursor: pointer; }
   .modal-body { padding: 20px; }
 
+  /* Visual lead card */
+  .lead-card {
+    display: none; background: linear-gradient(135deg, var(--ink), #1F2937); color: white; border-radius: 14px;
+    padding: 18px; margin-bottom: 20px;
+  }
+  .lead-card.show { display: block; }
+  .lead-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .lead-card-avatar {
+    width: 48px; height: 48px; border-radius: 12px; background: var(--copper); color: white;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 17px; flex-shrink: 0;
+  }
+  .lead-card-name { font-size: 17px; font-weight: 700; }
+  .lead-card-status { margin-top: 3px; }
+  .lead-card-contacts { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: rgba(255,255,255,0.85); margin-bottom: 10px; }
+  .lead-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .lead-card-tag { background: rgba(255,255,255,0.14); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .lead-card-age { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 8px; }
+
   .quick-action-row { display: flex; gap: 10px; margin-bottom: 20px; }
   .qa-big { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--pearl); text-decoration: none; color: var(--ink); font-size: 12px; font-weight: 600; }
   .qa-big .qa-icon { font-size: 20px; }
   .qa-big.disabled { opacity: 0.35; pointer-events: none; }
+
+  .duplicate-warning { display: none; background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; line-height: 1.5; }
+  .duplicate-warning.show { display: block; }
+  .reassign-panel { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+  .reassign-panel select { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; margin-bottom: 4px; }
 
   .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 22px 0 10px; }
   .section-label:first-child { margin-top: 0; }
@@ -184,13 +254,16 @@
   .field-row { display: flex; gap: 12px; }
   .field-row .field { flex: 1; }
 
-  .status-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .status-picker, .tag-picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .status-option { padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
   .status-option.selected { border-color: var(--ink); background: var(--ink); color: white; }
+  .tag-option { padding: 7px 13px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
+  .tag-option.selected { border-color: var(--copper); background: var(--copper); color: white; }
 
   .activity-log { margin-bottom: 10px; }
   .activity-entry { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--pearl); }
-  .activity-entry-date { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .activity-entry.auto { background: white; border-style: dashed; }
+  .activity-entry-date { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; display: flex; justify-content: space-between; }
   .activity-entry-note { font-size: 14px; color: var(--ink); line-height: 1.4; }
   .activity-entry-next { font-size: 13px; color: var(--cobalt); margin-top: 6px; font-weight: 600; }
   .activity-empty { font-size: 13px; color: var(--muted); padding: 10px 2px; }
@@ -199,8 +272,9 @@
   .activity-add-btn { align-self: flex-end; background: var(--ink); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
   .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
-  .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+  .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s; }
   .btn-primary { background: var(--cobalt); color: white; }
+  .btn-primary.saved { background: var(--success); }
   .btn-danger { background: white; color: var(--danger); border: 1.5px solid #FCA5A5; flex: 0 0 auto; padding: 13px 18px; }
   .btn:disabled { opacity: 0.5; }
 
@@ -220,10 +294,6 @@
   <div class="auth-card">
     <div class="auth-logo">React <span>CRM</span></div>
     <div class="auth-sub">Sign in to manage your leads</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabSignIn" onclick="setAuthMode('signin')">Sign in</button>
-      <button class="auth-tab" id="tabSignUp" onclick="setAuthMode('signup')">Create account</button>
-    </div>
     <div class="auth-error" id="authError"></div>
     <div class="auth-field">
       <label>Email</label>
@@ -234,7 +304,7 @@
       <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
-    <div class="auth-note" id="authNote">First time here? Tap "Create account" and set your own password — nobody else sees it.</div>
+    <div class="auth-note">Accounts are created by your admin. Contact them if you need access.</div>
   </div>
 </div>
 
@@ -253,18 +323,24 @@
     </div>
   </header>
 
-  <div class="view-toggle">
+  <div class="view-toggle" id="viewToggleRow">
+    <button class="view-toggle-btn" id="viewToggleToday" onclick="setView('today')">Today</button>
     <button class="view-toggle-btn" id="viewToggleList" onclick="setView('list')">List</button>
     <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
+    <button class="view-toggle-btn" id="viewToggleTeam" onclick="setView('team')" style="display:none">Team</button>
   </div>
 
-  <div class="tabs" id="tabs"></div>
+  <div class="broker-filter-banner" id="brokerFilterBanner" style="display:none"></div>
 
-  <div class="list" id="list">
-    <div class="loading-row">Loading leads...</div>
-  </div>
+  <div class="today-wrap" id="todayWrap" style="display:none"></div>
+
+  <div class="tabs" id="tabs" style="display:none"></div>
+
+  <div class="list" id="list" style="display:none"></div>
 
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
+
+  <div class="team-wrap" id="teamWrap" style="display:none"></div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -274,11 +350,25 @@
       <button class="close-btn" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <div class="lead-card" id="leadCard"></div>
+      <div class="duplicate-warning" id="duplicateWarning"></div>
       <div class="quick-action-row" id="quickActionRow"></div>
+
+      <div class="reassign-panel" id="reassignPanel" style="display:none">
+        <div class="section-label" style="margin-top:0">Reassign this lead</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">You're viewing this because you're a broker or admin — you can move this lead to another LO (useful if someone leaves the team), but can't edit its content.</p>
+        <div class="field">
+          <label>Assign to</label>
+          <select id="reassignSelect"></select>
+        </div>
+        <button type="button" class="activity-add-btn" style="width:100%" onclick="reassignLead()">Reassign lead</button>
+      </div>
+
+      <div id="editableFieldsWrap">
       <div class="field-row">
         <div class="field">
           <label>First name</label>
-          <input id="f_first_name" placeholder="Maria">
+          <input id="f_first_name" placeholder="Maria" oninput="checkDuplicate()">
         </div>
         <div class="field">
           <label>Last name</label>
@@ -288,16 +378,20 @@
       <div class="field-row">
         <div class="field">
           <label>Phone</label>
-          <input id="f_phone" placeholder="(813) 555-0100" type="tel">
+          <input id="f_phone" placeholder="(813) 555-0100" type="tel" oninput="checkDuplicate()">
         </div>
         <div class="field">
           <label>Email</label>
-          <input id="f_email" placeholder="maria@email.com" type="email">
+          <input id="f_email" placeholder="maria@email.com" type="email" oninput="checkDuplicate()">
         </div>
       </div>
       <div class="field">
         <label>Loan Stage</label>
         <div class="status-picker" id="statusPicker"></div>
+      </div>
+      <div class="field">
+        <label>Tags</label>
+        <div class="tag-picker" id="tagPicker"></div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -306,8 +400,12 @@
         </div>
         <div class="field">
           <label>Source</label>
-          <input id="f_source" placeholder="Referral, old lead, past client...">
+          <select id="f_source"></select>
         </div>
+      </div>
+      <div class="field" id="f_source_other_wrap" style="display:none">
+        <label>Source (other)</label>
+        <input id="f_source_other" placeholder="Describe the source">
       </div>
       <div class="field-row">
         <div class="field">
@@ -333,10 +431,11 @@
         <label>Notes</label>
         <textarea id="f_notes" placeholder="General context worth remembering..."></textarea>
       </div>
+      </div>
 
       <div class="section-label">Follow-up log</div>
       <div class="activity-log" id="activityLog"></div>
-      <div class="activity-add">
+      <div class="activity-add" id="activityAddWrap">
         <input id="activityNote" placeholder="What happened on this call/text/email?">
         <input id="activityNextStep" placeholder="Next step (optional) — e.g. 'Call back Thursday about rate'">
         <button type="button" class="activity-add-btn" onclick="addActivityEntry()">+ Add entry</button>
@@ -387,19 +486,40 @@ const SUPABASE_URL = 'https://yutslculmlgugedfvzzq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1dHNsY3VsbWxndWdlZGZ2enpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzY0MjcsImV4cCI6MjEwMzE1MjQyN30.dmX-Wim2qg2ELsYWKMwo6bh6E7XpXB6cK7M3mwZ248w';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Loan lifecycle pipeline — replaces the old generic 6-status list.
+// Loan lifecycle pipeline
 const STATUSES = [
   'New Lead', 'Contacted', 'Application', 'Pre-Approved', 'Under Contract',
   'Processing', 'Underwriting', 'Clear to Close', 'Funded', 'Post-Close', 'Dead'
 ];
+// Fixed tag list — client type / loan characteristics (multi-select)
+const TAGS = [
+  'First-Time Homebuyer', 'VA', 'FHA', 'Conventional', 'Jumbo', 'USDA',
+  'Refinance', 'Investor', 'Past Client', 'Self-Employed'
+];
+// Structured lead source list
+const SOURCES = [
+  'Client Referral', 'Realtor Referral', 'Past Client', 'Zillow',
+  'Social Media', 'Website', 'Cold Import', 'Other'
+];
+
 let leads = [];
 let activeTab = 'All';
 let editingId = null;
-let authMode = 'signin';
-let currentView = 'list'; // 'list' | 'calendar'
+let currentView = 'today'; // 'today' | 'list' | 'calendar'
 let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-let selectedCalDay = null; // 'YYYY-MM-DD'
-let editingActivityLog = []; // local working copy while a lead modal is open
+let selectedCalDay = null;
+let editingActivityLog = [];
+let editingTags = [];
+let originalStatus = null; // to detect status changes for auto-log
+let calAddFormOpen = false;
+let myProfile = null; // { role, brokerage_id, full_name, email }
+let brokerageProfiles = []; // profiles visible to me (own brokerage for broker, everyone for admin)
+let brokerFilterUserId = null; // when set, list view is filtered to one LO
+let brokerFilterName = '';
+let currentUserId = null;
+let myBrokerageName = '';
+let modalMode = 'edit'; // 'edit' | 'reassign'
+let editingLeadSnapshot = null;
 
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
@@ -416,7 +536,6 @@ window.addEventListener('unhandledrejection', (e) => {
   }
 });
 
-window.setAuthMode = setAuthMode;
 window.submitAuth = submitAuth;
 window.signOut = signOut;
 window.openNewLead = openNewLead;
@@ -435,6 +554,15 @@ window.addActivityEntry = addActivityEntry;
 window.removeActivityEntry = removeActivityEntry;
 window.navCalendar = navCalendar;
 window.selectCalDay = selectCalDay;
+window.toggleTag = toggleTag;
+window.checkDuplicate = checkDuplicate;
+window.openCalAddForm = openCalAddForm;
+window.closeCalAddForm = closeCalAddForm;
+window.saveCalAddForm = saveCalAddForm;
+window.filterByLO = filterByLO;
+window.clearBrokerFilter = clearBrokerFilter;
+window.exportTeamCSV = exportTeamCSV;
+window.reassignLead = reassignLead;
 
 /* ===== UTIL ===== */
 function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
@@ -451,6 +579,12 @@ function isOverdue(d) {
   if (!d) return false;
   return new Date(d + 'T00:00:00') < new Date(new Date().toDateString());
 }
+function daysBetween(d) {
+  if (!d) return null;
+  const target = new Date(d + 'T00:00:00');
+  const today = new Date(new Date().toDateString());
+  return Math.round((today - target) / 86400000);
+}
 function rateLockStatus(d) {
   if (!d) return null;
   const target = new Date(d + 'T00:00:00');
@@ -460,6 +594,19 @@ function rateLockStatus(d) {
   if (diffDays <= 5) return 'soon';
   return null;
 }
+function daysUntil(d) {
+  if (!d) return null;
+  const target = new Date(d + 'T00:00:00');
+  const today = new Date(new Date().toDateString());
+  return Math.round((target - today) / 86400000);
+}
+function contactAgeLabel(l) {
+  const days = daysBetween(l.last_contacted);
+  if (days === null) return 'Never contacted';
+  if (days === 0) return 'Contacted today';
+  if (days === 1) return 'Contacted yesterday';
+  return `${days} days since contact`;
+}
 
 /* ===== IMPORT ===== */
 const TARGET_FIELDS = [
@@ -468,7 +615,6 @@ const TARGET_FIELDS = [
   { key: 'phone', label: 'Phone' },
   { key: 'email', label: 'Email' },
   { key: 'loan_type', label: 'Loan type' },
-  { key: 'source', label: 'Source' },
   { key: 'notes', label: 'Notes' },
 ];
 const HEADER_HINTS = {
@@ -477,7 +623,6 @@ const HEADER_HINTS = {
   phone: ['phone', 'phone number', 'mobile', 'cell', 'telephone'],
   email: ['email', 'e-mail', 'email address'],
   loan_type: ['loan type', 'loan', 'product', 'type'],
-  source: ['source', 'lead source', 'referral'],
   notes: ['notes', 'note', 'comments', 'comment'],
 };
 let importHeaders = [];
@@ -589,9 +734,10 @@ async function runImport() {
         phone: mapping.phone ? (row[mapping.phone] || '').toString().trim() || null : null,
         email: mapping.email ? (row[mapping.email] || '').toString().trim() || null : null,
         loan_type: mapping.loan_type ? (row[mapping.loan_type] || '').toString().trim() || null : null,
-        source: mapping.source ? ((row[mapping.source] || '').toString().trim() || 'Imported') : 'Imported',
+        source: 'Cold Import',
         notes: mapping.notes ? (row[mapping.notes] || '').toString().trim() || null : null,
         status: 'New Lead',
+        tags: [],
         activity_log: [],
         created_by: user?.id || null,
       };
@@ -625,17 +771,6 @@ async function runImport() {
   }
 }
 
-function setAuthMode(mode) {
-  authMode = mode;
-  document.getElementById('tabSignIn').classList.toggle('active', mode === 'signin');
-  document.getElementById('tabSignUp').classList.toggle('active', mode === 'signup');
-  document.getElementById('authSubmitBtn').textContent = mode === 'signin' ? 'Sign in' : 'Create account';
-  document.getElementById('authNote').textContent = mode === 'signin'
-    ? 'New here? Tap "Create account" above.'
-    : 'Pick any email and password — this creates your own private login.';
-  hideAuthError();
-}
-
 function showAuthError(msg) {
   const el = document.getElementById('authError');
   el.textContent = msg;
@@ -648,35 +783,51 @@ async function submitAuth() {
   const password = document.getElementById('authPassword').value;
   hideAuthError();
   if (!email || !password) { showAuthError('Enter an email and password.'); return; }
-  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
 
   const btn = document.getElementById('authSubmitBtn');
   btn.disabled = true;
-  btn.textContent = authMode === 'signin' ? 'Signing in...' : 'Creating account...';
+  btn.textContent = 'Signing in...';
 
   try {
-    if (authMode === 'signin') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
-      showAuthError("Account created. If email confirmation isn't required, you're signed in now.");
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
   } catch (err) {
     showAuthError(err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = authMode === 'signin' ? 'Sign in' : 'Create account';
+    btn.textContent = 'Sign in';
   }
 }
 
 async function signOut() { await supabase.auth.signOut(); }
 
-function showApp() {
+async function showApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
-  loadLeads();
+  await fetchMyProfile();
+  await loadLeads();
+}
+
+async function fetchMyProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  currentUserId = user.id;
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  if (error) { myProfile = null; return; }
+  myProfile = data;
+  const showTeam = myProfile.role === 'broker' || myProfile.role === 'admin';
+  document.getElementById('viewToggleTeam').style.display = showTeam ? 'block' : 'none';
+
+  if (myProfile.role === 'admin') {
+    const { data: profs } = await supabase.from('profiles').select('*');
+    brokerageProfiles = profs || [];
+    myBrokerageName = 'All brokerages';
+  } else if (myProfile.role === 'broker' && myProfile.brokerage_id) {
+    const { data: profs } = await supabase.from('profiles').select('*').eq('brokerage_id', myProfile.brokerage_id);
+    brokerageProfiles = profs || [];
+    const { data: brok } = await supabase.from('brokerages').select('name').eq('id', myProfile.brokerage_id).single();
+    myBrokerageName = brok?.name || 'Your brokerage';
+  }
 }
 function showAuth() {
   document.getElementById('authScreen').style.display = 'flex';
@@ -722,20 +873,205 @@ function setTab(s) { activeTab = s; renderTabs(); renderList(); }
 
 function setView(v) {
   currentView = v;
+  document.getElementById('viewToggleToday').classList.toggle('active', v === 'today');
   document.getElementById('viewToggleList').classList.toggle('active', v === 'list');
   document.getElementById('viewToggleCalendar').classList.toggle('active', v === 'calendar');
+  document.getElementById('viewToggleTeam').classList.toggle('active', v === 'team');
+  document.getElementById('todayWrap').style.display = v === 'today' ? 'block' : 'none';
   document.getElementById('tabs').style.display = v === 'list' ? 'flex' : 'none';
   document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = v === 'calendar' ? 'block' : 'none';
+  document.getElementById('teamWrap').style.display = v === 'team' ? 'block' : 'none';
+  renderBrokerFilterBanner();
+  if (v === 'today') renderToday();
   if (v === 'calendar') renderCalendar();
+  if (v === 'team') renderTeam();
+  if (v === 'list') renderList();
+}
+
+function renderBrokerFilterBanner() {
+  const banner = document.getElementById('brokerFilterBanner');
+  if (brokerFilterUserId && currentView === 'list') {
+    banner.style.display = 'flex';
+    banner.innerHTML = `<span>Viewing: ${brokerFilterName}'s leads</span><button onclick="clearBrokerFilter()">✕</button>`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function filterByLO(userId, name) {
+  brokerFilterUserId = userId;
+  brokerFilterName = name;
+  setView('list');
+}
+function clearBrokerFilter() {
+  brokerFilterUserId = null;
+  brokerFilterName = '';
+  renderBrokerFilterBanner();
+  renderList();
 }
 
 function initials(l) { return ((l.first_name?.[0] || '') + (l.last_name?.[0] || '')).toUpperCase() || '?'; }
+
+/* ===== TODAY VIEW ===== */
+function renderToday() {
+  const wrap = document.getElementById('todayWrap');
+  const activeLeads = leads.filter(l => l.status !== 'Dead');
+
+  const overdueFollowups = activeLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up));
+  const dueTodayFollowups = activeLeads.filter(l => l.next_follow_up === todayStr());
+  const locksThisWeek = activeLeads.filter(l => {
+    const s = rateLockStatus(l.rate_lock_expiration);
+    return s === 'soon' || s === 'expired';
+  });
+  const closingsSoon = activeLeads.filter(l => {
+    const d = daysUntil(l.closing_date);
+    return d !== null && d >= 0 && d <= 7;
+  });
+
+  const section = (title, count, items, renderItem) => `
+    <div class="today-section">
+      <div class="today-section-title">${title} <span class="today-section-count">${count}</span></div>
+      ${items.length === 0
+        ? `<div class="today-empty">Nothing here right now.</div>`
+        : items.map(renderItem).join('')
+      }
+    </div>
+  `;
+
+  const greeting = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  wrap.innerHTML = `
+    <div class="today-greeting">Today</div>
+    <div class="today-date">${greeting}</div>
+    ${section('Follow-ups due', overdueFollowups.length + dueTodayFollowups.length, [...overdueFollowups, ...dueTodayFollowups], l => `
+      <div class="today-card" onclick="openLead('${l.id}')">
+        <div class="today-card-dot ${isOverdue(l.next_follow_up) ? 'overdue' : 'due'}"></div>
+        <div class="today-card-info">
+          <div class="today-card-name">${l.first_name || ''} ${l.last_name || ''}</div>
+          <div class="today-card-detail">${isOverdue(l.next_follow_up) ? 'Overdue since ' + fmtDate(l.next_follow_up) : 'Due today'} · ${l.status}</div>
+        </div>
+      </div>
+    `)}
+    ${section('Rate locks needing attention', locksThisWeek.length, locksThisWeek, l => `
+      <div class="today-card" onclick="openLead('${l.id}')">
+        <div class="today-card-dot lock"></div>
+        <div class="today-card-info">
+          <div class="today-card-name">${l.first_name || ''} ${l.last_name || ''}</div>
+          <div class="today-card-detail">${rateLockStatus(l.rate_lock_expiration) === 'expired' ? 'Expired ' : 'Expires '}${fmtDate(l.rate_lock_expiration)}</div>
+        </div>
+      </div>
+    `)}
+    ${section('Closings this week', closingsSoon.length, closingsSoon, l => `
+      <div class="today-card" onclick="openLead('${l.id}')">
+        <div class="today-card-dot closing"></div>
+        <div class="today-card-info">
+          <div class="today-card-name">${l.first_name || ''} ${l.last_name || ''}</div>
+          <div class="today-card-detail">Closing ${fmtDate(l.closing_date)}</div>
+        </div>
+      </div>
+    `)}
+  `;
+}
+
+/* ===== TEAM / BROKER DASHBOARD ===== */
+function loName(userId) {
+  const p = brokerageProfiles.find(x => x.id === userId);
+  if (!p) return 'Unknown';
+  return p.full_name || p.email || 'LO';
+}
+function loInitials(userId) {
+  const name = loName(userId);
+  return name.slice(0, 2).toUpperCase();
+}
+
+function renderTeam() {
+  const wrap = document.getElementById('teamWrap');
+  if (!myProfile || (myProfile.role !== 'broker' && myProfile.role !== 'admin')) {
+    wrap.innerHTML = `<div class="empty-state"><h3>Broker or admin access only</h3><p>This view is only available to brokerage-level and admin accounts.</p></div>`;
+    return;
+  }
+
+  const maxCount = Math.max(1, ...STATUSES.map(s => leads.filter(l => l.status === s).length));
+
+  const funnelHTML = STATUSES.map(s => {
+    const count = leads.filter(l => l.status === s).length;
+    const pct = Math.round((count / maxCount) * 100);
+    return `
+      <div class="funnel-row">
+        <div class="funnel-label">${s}</div>
+        <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:${pct}%"></div></div>
+        <div class="funnel-count">${count}</div>
+      </div>
+    `;
+  }).join('');
+
+  const byLO = {};
+  leads.forEach(l => {
+    if (!byLO[l.created_by]) byLO[l.created_by] = [];
+    byLO[l.created_by].push(l);
+  });
+  const loRows = Object.keys(byLO).length === 0
+    ? `<div class="today-empty">No leads logged across the brokerage yet.</div>`
+    : Object.keys(byLO).map(userId => {
+        const loLeads = byLO[userId];
+        const overdue = loLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up)).length;
+        return `
+          <div class="lo-card" onclick="filterByLO('${userId}', '${loName(userId).replace(/'/g, "\\'")}')">
+            <div class="lo-card-avatar">${loInitials(userId)}</div>
+            <div class="lo-card-info">
+              <div class="lo-card-name">${loName(userId)}</div>
+              <div class="lo-card-detail">${overdue > 0 ? overdue + ' overdue follow-up' + (overdue === 1 ? '' : 's') : 'No overdue follow-ups'}</div>
+            </div>
+            <div class="lo-card-count">${loLeads.length}</div>
+          </div>
+        `;
+      }).join('');
+
+  wrap.innerHTML = `
+    <div class="team-header">
+      <h2>${myProfile.role === 'admin' ? 'System overview (admin)' : myBrokerageName}</h2>
+      <p>${leads.length} total lead${leads.length === 1 ? '' : 's'} across ${Object.keys(byLO).length} LO${Object.keys(byLO).length === 1 ? '' : 's'}</p>
+      <button class="team-export-btn" onclick="exportTeamCSV()">Export CSV</button>
+    </div>
+    <div class="section-label">Pipeline funnel</div>
+    ${funnelHTML}
+    <div class="section-label">By loan officer — tap to view their leads</div>
+    ${loRows}
+  `;
+}
+
+function exportTeamCSV() {
+  const rows = leads.map(l => ({
+    'First Name': l.first_name || '',
+    'Last Name': l.last_name || '',
+    'Phone': l.phone || '',
+    'Email': l.email || '',
+    'Status': l.status || '',
+    'Tags': (l.tags || []).join('; '),
+    'Loan Type': l.loan_type || '',
+    'Source': l.source || '',
+    'Loan Officer': loName(l.created_by),
+    'Next Follow-up': l.next_follow_up || '',
+    'Last Contacted': l.last_contacted || '',
+    'Rate Lock Expires': l.rate_lock_expiration || '',
+    'Closing Date': l.closing_date || '',
+  }));
+  const csv = Papa.unparse(rows);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `brokerage-leads-${todayStr()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function renderList() {
   const listEl = document.getElementById('list');
   const query = document.getElementById('searchInput').value.toLowerCase().trim();
   let filtered = leads;
+  if (brokerFilterUserId) filtered = filtered.filter(l => l.created_by === brokerFilterUserId);
   if (activeTab !== 'All') filtered = filtered.filter(l => l.status === activeTab);
   if (query) {
     filtered = filtered.filter(l =>
@@ -761,6 +1097,7 @@ function renderList() {
         <div class="lead-info">
           <div class="lead-name">${l.first_name || ''} ${l.last_name || ''}</div>
           <div class="lead-sub">${l.phone || l.email || 'No contact info'}</div>
+          <div class="lead-contact-age">${contactAgeLabel(l)}</div>
         </div>
       </div>
       <div class="lead-meta">
@@ -778,11 +1115,11 @@ function renderList() {
 function navCalendar(delta) {
   calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
   selectedCalDay = null;
+  calAddFormOpen = false;
   renderCalendar();
 }
 
 function eventsForMonth() {
-  // Map 'YYYY-MM-DD' -> array of {lead, type}
   const map = {};
   const push = (dateStr, lead, type) => {
     if (!dateStr) return;
@@ -799,7 +1136,38 @@ function eventsForMonth() {
 
 function selectCalDay(dateStr) {
   selectedCalDay = dateStr;
+  calAddFormOpen = false;
   renderCalendar();
+}
+
+function openCalAddForm() { calAddFormOpen = true; renderCalendar(); }
+function closeCalAddForm() { calAddFormOpen = false; renderCalendar(); }
+
+async function saveCalAddForm() {
+  const leadId = document.getElementById('calAddLeadSelect').value;
+  const note = document.getElementById('calAddNote').value.trim();
+  const nextStep = document.getElementById('calAddNextStep').value.trim();
+  if (!leadId) { showToast('Pick a lead first'); return; }
+  if (!note) { showToast('Add a note'); return; }
+
+  const lead = leads.find(l => l.id === leadId);
+  if (!lead) return;
+
+  const newLog = Array.isArray(lead.activity_log) ? [...lead.activity_log] : [];
+  newLog.push({ date: selectedCalDay, note, next_step: nextStep || null });
+
+  try {
+    const { error } = await supabase.from('leads')
+      .update({ activity_log: newLog, next_follow_up: selectedCalDay })
+      .eq('id', leadId);
+    if (error) throw error;
+    showToast('Follow-up added');
+    calAddFormOpen = false;
+    await loadLeads();
+    renderCalendar();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
 }
 
 function renderCalendar() {
@@ -833,6 +1201,7 @@ function renderCalendar() {
   if (selectedCalDay) {
     const evs = eventMap[selectedCalDay] || [];
     const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing' };
+    const leadOptions = leads.map(l => `<option value="${l.id}">${l.first_name || ''} ${l.last_name || ''}</option>`).join('');
     panelHTML = `
       <div class="cal-day-panel">
         <h4>${fmtDateLong(selectedCalDay)}</h4>
@@ -848,6 +1217,17 @@ function renderCalendar() {
             </div>
           `).join('')
         }
+        ${calAddFormOpen ? `
+          <div class="cal-add-form">
+            <select id="calAddLeadSelect">${leadOptions}</select>
+            <input id="calAddNote" placeholder="What's this follow-up about?">
+            <input id="calAddNextStep" placeholder="Next step (optional)">
+            <div class="cal-add-form-actions">
+              <button class="cal-cancel-btn" onclick="closeCalAddForm()">Cancel</button>
+              <button class="cal-save-btn" onclick="saveCalAddForm()">Save</button>
+            </div>
+          </div>
+        ` : `<button class="cal-add-btn" onclick="openCalAddForm()">+ Add follow-up for a lead</button>`}
       </div>
     `;
   }
@@ -879,16 +1259,16 @@ function renderActivityLog() {
     return;
   }
   const sorted = [...editingActivityLog].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  el.innerHTML = sorted.map((entry, sortedIdx) => {
+  el.innerHTML = sorted.map((entry) => {
     const realIdx = editingActivityLog.indexOf(entry);
     return `
-      <div class="activity-entry">
-        <div class="activity-entry-date">${fmtDateLong(entry.date)}</div>
+      <div class="activity-entry ${entry.auto ? 'auto' : ''}">
+        <div class="activity-entry-date"><span>${fmtDateLong(entry.date)}</span>${entry.auto ? '<span>System</span>' : ''}</div>
         <div class="activity-entry-note">${entry.note}</div>
         ${entry.next_step ? `<div class="activity-entry-next">Next: ${entry.next_step}</div>` : ''}
-        <div style="text-align:right;margin-top:6px">
+        ${!entry.auto ? `<div style="text-align:right;margin-top:6px">
           <button type="button" onclick="removeActivityEntry(${realIdx})" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline">Remove</button>
-        </div>
+        </div>` : ''}
       </div>
     `;
   }).join('');
@@ -918,36 +1298,135 @@ window.selectStatus = function(s) {
   document.querySelectorAll('.status-option').forEach(el => el.classList.toggle('selected', el.dataset.status === s));
 };
 
+function renderTagPicker() {
+  const picker = document.getElementById('tagPicker');
+  picker.innerHTML = TAGS.map(t =>
+    `<div class="tag-option ${editingTags.includes(t) ? 'selected' : ''}" data-tag="${t}" onclick="toggleTag('${t}')">${t}</div>`
+  ).join('');
+}
+function toggleTag(t) {
+  if (editingTags.includes(t)) editingTags = editingTags.filter(x => x !== t);
+  else editingTags.push(t);
+  renderTagPicker();
+}
+
+function renderSourcePicker(selected) {
+  const sel = document.getElementById('f_source');
+  sel.innerHTML = SOURCES.map(s => `<option value="${s}" ${s === selected ? 'selected' : ''}>${s}</option>`).join('');
+  const isOther = selected === 'Other';
+  document.getElementById('f_source_other_wrap').style.display = isOther ? 'block' : 'none';
+  sel.onchange = () => {
+    document.getElementById('f_source_other_wrap').style.display = sel.value === 'Other' ? 'block' : 'none';
+  };
+}
+
+/* ===== DUPLICATE CHECK ===== */
+function checkDuplicate() {
+  if (editingId) return; // only warn on new-lead creation
+  const phone = document.getElementById('f_phone').value.trim();
+  const email = document.getElementById('f_email').value.trim().toLowerCase();
+  const warnEl = document.getElementById('duplicateWarning');
+  if (!phone && !email) { warnEl.classList.remove('show'); return; }
+
+  const match = leads.find(l =>
+    (phone && l.phone && l.phone.replace(/\D/g, '') === phone.replace(/\D/g, '') && phone.replace(/\D/g, '').length >= 7) ||
+    (email && l.email && l.email.toLowerCase() === email)
+  );
+  if (match) {
+    warnEl.textContent = `Possible duplicate: ${match.first_name} ${match.last_name || ''} already has this ${match.phone === phone ? 'phone number' : 'email'} on file.`;
+    warnEl.classList.add('show');
+  } else {
+    warnEl.classList.remove('show');
+  }
+}
+
 function openNewLead() {
   editingId = null;
+  editingLeadSnapshot = null;
+  modalMode = 'edit';
   editingActivityLog = [];
+  editingTags = [];
+  originalStatus = null;
   document.getElementById('modalTitle').textContent = 'New lead';
   document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('saveBtn').style.display = 'block';
+  document.getElementById('editableFieldsWrap').style.display = 'block';
+  document.getElementById('activityAddWrap').style.display = 'flex';
+  document.getElementById('reassignPanel').style.display = 'none';
   document.getElementById('quickActionRow').innerHTML = '';
-  ['first_name','last_name','phone','email','loan_type','source','next_follow_up','last_contacted','rate_lock_expiration','closing_date','notes'].forEach(f => {
+  document.getElementById('leadCard').classList.remove('show');
+  document.getElementById('duplicateWarning').classList.remove('show');
+  ['first_name','last_name','phone','email','loan_type','next_follow_up','last_contacted','rate_lock_expiration','closing_date','notes'].forEach(f => {
     document.getElementById('f_' + f).value = '';
   });
+  document.getElementById('f_source_other').value = '';
   document.getElementById('activityNote').value = '';
   document.getElementById('activityNextStep').value = '';
   renderStatusPicker('New Lead');
+  renderTagPicker();
+  renderSourcePicker('Client Referral');
   renderActivityLog();
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function renderLeadCard(l) {
+  const card = document.getElementById('leadCard');
+  card.classList.add('show');
+  card.innerHTML = `
+    <div class="lead-card-top">
+      <div class="lead-card-avatar">${initials(l)}</div>
+      <div>
+        <div class="lead-card-name">${l.first_name || ''} ${l.last_name || ''}</div>
+        <div class="lead-card-status"><span class="status-badge status-${slugify(l.status)}">${l.status}</span></div>
+      </div>
+    </div>
+    <div class="lead-card-contacts">
+      ${l.phone ? `<div>📞 ${l.phone}</div>` : ''}
+      ${l.email ? `<div>✉️ ${l.email}</div>` : ''}
+    </div>
+    ${(l.tags && l.tags.length) ? `<div class="lead-card-tags">${l.tags.map(t => `<span class="lead-card-tag">${t}</span>`).join('')}</div>` : ''}
+    <div class="lead-card-age">${contactAgeLabel(l)}</div>
+  `;
 }
 
 function openLead(id) {
   const l = leads.find(x => x.id === id);
   if (!l) return;
   editingId = id;
+  editingLeadSnapshot = l;
   editingActivityLog = Array.isArray(l.activity_log) ? JSON.parse(JSON.stringify(l.activity_log)) : [];
+  editingTags = Array.isArray(l.tags) ? [...l.tags] : [];
+  originalStatus = l.status;
+
+  const iAmOwner = l.created_by === currentUserId;
+  const iAmAdmin = myProfile?.role === 'admin';
+  const iAmPrivileged = myProfile?.role === 'broker' || myProfile?.role === 'admin';
+  const showEditFields = iAmOwner || iAmAdmin;
+  const showReassignPanel = !iAmOwner && iAmPrivileged;
+  modalMode = (!showEditFields) ? 'reassign' : 'edit';
+
   document.getElementById('modalTitle').textContent = `${l.first_name} ${l.last_name || ''}`.trim();
-  document.getElementById('deleteBtn').style.display = 'block';
+  document.getElementById('deleteBtn').style.display = (iAmOwner || iAmAdmin) ? 'block' : 'none';
+  document.getElementById('saveBtn').style.display = showEditFields ? 'block' : 'none';
+  document.getElementById('editableFieldsWrap').style.display = showEditFields ? 'block' : 'none';
+  document.getElementById('activityAddWrap').style.display = showEditFields ? 'flex' : 'none';
+  document.getElementById('reassignPanel').style.display = showReassignPanel ? 'block' : 'none';
+
+  if (showReassignPanel) {
+    const options = brokerageProfiles
+      .filter(p => p.role === 'lo' && p.id !== l.created_by)
+      .map(p => `<option value="${p.id}">${p.full_name || p.email}</option>`).join('');
+    document.getElementById('reassignSelect').innerHTML = options || '<option value="">No other LOs available</option>';
+  }
+
   document.getElementById('quickActionRow').innerHTML = quickActionsHTML(l, true);
+  document.getElementById('duplicateWarning').classList.remove('show');
+  renderLeadCard(l);
   document.getElementById('f_first_name').value = l.first_name || '';
   document.getElementById('f_last_name').value = l.last_name || '';
   document.getElementById('f_phone').value = l.phone || '';
   document.getElementById('f_email').value = l.email || '';
   document.getElementById('f_loan_type').value = l.loan_type || '';
-  document.getElementById('f_source').value = l.source || '';
   document.getElementById('f_next_follow_up').value = l.next_follow_up || '';
   document.getElementById('f_last_contacted').value = l.last_contacted || '';
   document.getElementById('f_rate_lock_expiration').value = l.rate_lock_expiration || '';
@@ -956,8 +1435,42 @@ function openLead(id) {
   document.getElementById('activityNote').value = '';
   document.getElementById('activityNextStep').value = '';
   renderStatusPicker(l.status);
+  renderTagPicker();
+  const knownSource = SOURCES.includes(l.source) ? l.source : (l.source ? 'Other' : 'Client Referral');
+  renderSourcePicker(knownSource);
+  if (knownSource === 'Other') document.getElementById('f_source_other').value = l.source || '';
   renderActivityLog();
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function reassignLead() {
+  if (!editingId || !editingLeadSnapshot) return;
+  const newOwnerId = document.getElementById('reassignSelect').value;
+  if (!newOwnerId) { showToast('Pick an LO to reassign to'); return; }
+
+  const oldOwnerName = loName(editingLeadSnapshot.created_by);
+  const newOwnerName = loName(newOwnerId);
+  const myName = myProfile.full_name || myProfile.email;
+  const newLog = Array.isArray(editingLeadSnapshot.activity_log) ? [...editingLeadSnapshot.activity_log] : [];
+  newLog.push({
+    date: todayStr(),
+    note: `Reassigned from ${oldOwnerName} to ${newOwnerName} by ${myName}`,
+    next_step: null,
+    auto: true,
+  });
+
+  try {
+    const { error } = await supabase.from('leads')
+      .update({ created_by: newOwnerId, activity_log: newLog })
+      .eq('id', editingId);
+    if (error) throw error;
+    showToast('Lead reassigned');
+    closeModal();
+    await loadLeads();
+    if (currentView === 'team') renderTeam();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
 }
 
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
@@ -974,6 +1487,21 @@ async function saveLead() {
   if (!firstName) { showToast('First name is required'); return; }
 
   const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'New Lead';
+  const sourceSelect = document.getElementById('f_source').value;
+  const finalSource = sourceSelect === 'Other'
+    ? (document.getElementById('f_source_other').value.trim() || 'Other')
+    : sourceSelect;
+
+  // Auto-log status changes
+  const activityLogToSave = [...editingActivityLog];
+  if (editingId && originalStatus && originalStatus !== selectedStatus) {
+    activityLogToSave.push({
+      date: todayStr(),
+      note: `Status changed: ${originalStatus} → ${selectedStatus}`,
+      next_step: null,
+      auto: true,
+    });
+  }
 
   const payload = {
     first_name: firstName,
@@ -981,14 +1509,15 @@ async function saveLead() {
     phone: document.getElementById('f_phone').value.trim() || null,
     email: document.getElementById('f_email').value.trim() || null,
     status: selectedStatus,
+    tags: editingTags,
     loan_type: document.getElementById('f_loan_type').value.trim() || null,
-    source: document.getElementById('f_source').value.trim() || null,
+    source: finalSource,
     next_follow_up: document.getElementById('f_next_follow_up').value || null,
     last_contacted: document.getElementById('f_last_contacted').value || null,
     rate_lock_expiration: document.getElementById('f_rate_lock_expiration').value || null,
     closing_date: document.getElementById('f_closing_date').value || null,
     notes: document.getElementById('f_notes').value.trim() || null,
-    activity_log: editingActivityLog,
+    activity_log: activityLogToSave,
   };
 
   const saveBtn = document.getElementById('saveBtn');
@@ -1007,11 +1536,16 @@ async function saveLead() {
       if (error) throw error;
       showToast('Lead added');
     }
-    closeModal();
+    saveBtn.classList.add('saved');
+    saveBtn.textContent = '✓ Saved';
     await loadLeads();
+    setTimeout(() => {
+      saveBtn.classList.remove('saved');
+      saveBtn.textContent = 'Save lead';
+      closeModal();
+    }, 500);
   } catch (err) {
     showToast('Error: ' + err.message);
-  } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save lead';
   }
@@ -1031,7 +1565,20 @@ async function deleteLead() {
   }
 }
 
+function renderSkeleton() {
+  document.getElementById('list').innerHTML = Array(5).fill(0).map(() => `
+    <div class="skeleton-row">
+      <div class="skeleton-box" style="width:40px;height:40px;border-radius:10px"></div>
+      <div style="flex:1">
+        <div class="skeleton-box" style="width:60%;height:14px;margin-bottom:6px"></div>
+        <div class="skeleton-box" style="width:40%;height:11px"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
 async function loadLeads() {
+  renderSkeleton();
   const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
   if (error) {
     document.getElementById('list').innerHTML = `<div class="empty-state"><h3>Couldn't load leads</h3><p>${error.message}</p></div>`;
@@ -1040,8 +1587,11 @@ async function loadLeads() {
   leads = data || [];
   renderTabs();
   renderList();
+  if (currentView === 'today') renderToday();
   if (currentView === 'calendar') renderCalendar();
 }
+
+setView('today');
 </script>
 
 </body>
