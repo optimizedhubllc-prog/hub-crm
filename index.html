@@ -343,6 +343,7 @@
     <button class="view-toggle-btn" id="viewToggleTasks" onclick="setView('tasks')">Tasks</button>
     <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
     <button class="view-toggle-btn" id="viewToggleTeam" onclick="setView('team')" style="display:none">Brokerage</button>
+    <button class="view-toggle-btn" id="viewToggleOps" onclick="setView('ops')" style="display:none">Ops</button>
   </div>
 
   <div class="broker-filter-banner" id="brokerFilterBanner" style="display:none"></div>
@@ -363,6 +364,7 @@
 
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
   <div class="team-wrap" id="teamWrap" style="display:none"></div>
+  <div class="team-wrap" id="opsWrap" style="display:none"></div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -943,6 +945,8 @@ async function fetchMyProfile() {
   myProfile = data;
   const showTeam = myProfile.role === 'broker' || myProfile.role === 'admin';
   document.getElementById('viewToggleTeam').style.display = showTeam ? 'block' : 'none';
+  const showOps = myProfile.role === 'owner';
+  document.getElementById('viewToggleOps').style.display = showOps ? 'block' : 'none';
 
   if (myProfile.role === 'admin') {
     const { data: profs } = await supabase.from('profiles').select('*');
@@ -1021,17 +1025,20 @@ function setView(v) {
   document.getElementById('viewToggleTasks').classList.toggle('active', v === 'tasks');
   document.getElementById('viewToggleCalendar').classList.toggle('active', v === 'calendar');
   document.getElementById('viewToggleTeam').classList.toggle('active', v === 'team');
+  document.getElementById('viewToggleOps').classList.toggle('active', v === 'ops');
   document.getElementById('todayWrap').style.display = v === 'today' ? 'block' : 'none';
   document.getElementById('tabs').style.display = v === 'list' ? 'flex' : 'none';
   document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
   document.getElementById('tasksWrap').style.display = v === 'tasks' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = v === 'calendar' ? 'block' : 'none';
   document.getElementById('teamWrap').style.display = v === 'team' ? 'block' : 'none';
+  document.getElementById('opsWrap').style.display = v === 'ops' ? 'block' : 'none';
   renderBrokerFilterBanner();
   if (v === 'today') renderToday();
   if (v === 'tasks') renderTasks();
   if (v === 'calendar') renderCalendar();
   if (v === 'team') renderTeam();
+  if (v === 'ops') renderOps();
   if (v === 'list') renderList();
 }
 
@@ -1423,6 +1430,47 @@ function exportTeamCSV() {
   a.download = `pipeline-audit-${todayStr()}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+async function renderOps() {
+  const wrap = document.getElementById('opsWrap');
+  wrap.innerHTML = `<div class="today-empty">Loading ops summary...</div>`;
+
+  const { data, error } = await supabase.rpc('get_brokerage_ops_summary');
+  if (error) {
+    wrap.innerHTML = `<div class="empty-state"><h3>Ops Summary Unavailable</h3><p>${error.message}</p></div>`;
+    return;
+  }
+  if (!data || !data.length) {
+    wrap.innerHTML = `<div class="empty-state"><h3>No brokerages provisioned yet</h3><p>Client brokerages will appear here once they're set up.</p></div>`;
+    return;
+  }
+
+  const rows = data.map(b => `
+    <div class="lo-card" style="cursor:default">
+      <div class="lo-card-avatar">${(b.brokerage_name || '?').slice(0, 2).toUpperCase()}</div>
+      <div class="lo-card-info">
+        <div class="lo-card-name">${b.brokerage_name}</div>
+        <div class="lo-card-detail">${b.lo_count} LO${b.lo_count === 1 ? '' : 's'} · ${b.active_lead_count} active leads · ${b.task_overdue_count} overdue task${b.task_overdue_count === 1 ? '' : 's'}</div>
+        <div class="lo-card-detail" style="margin-top:2px">Last lead activity: ${b.last_lead_activity ? fmtDateTime(b.last_lead_activity) : 'None'} · Last task activity: ${b.last_task_activity ? fmtDateTime(b.last_task_activity) : 'None'}</div>
+      </div>
+      <div class="lo-card-count">
+        <div style="font-weight:700;font-size:14px">${b.task_pending_count} pending</div>
+        <div style="font-size:12px;color:var(--muted)">${b.dead_lead_count} dead leads</div>
+      </div>
+    </div>
+  `).join('');
+
+  wrap.innerHTML = `
+    <div class="team-header">
+      <div>
+        <h2>Ops Dashboard</h2>
+        <p>Aggregate health signals only — no client, lead, or contact PII is shown here.</p>
+      </div>
+    </div>
+    <div class="section-label">Brokerage Health</div>
+    ${rows}
+  `;
 }
 
 function renderList() {
