@@ -205,6 +205,7 @@
   .cal-dot.followup { background: var(--cobalt); }
   .cal-dot.ratelock { background: var(--copper); }
   .cal-dot.closing { background: var(--success); }
+  .cal-dot.task { background: var(--muted); }
   .cal-legend { display: flex; gap: 14px; padding: 14px 2px 4px; font-size: 12px; color: var(--muted); }
   .cal-legend span { display: flex; align-items: center; gap: 5px; }
   .cal-legend .cal-dot { width: 8px; height: 8px; }
@@ -216,6 +217,7 @@
   .cal-event-tag.followup { background: #DBEAFE; color: #1D4ED8; }
   .cal-event-tag.ratelock { background: #FDE9D0; color: #9A5B1F; }
   .cal-event-tag.closing { background: #D1FAE5; color: #047857; }
+  .cal-event-tag.task { background: #E2E8F0; color: #334155; }
   .cal-add-btn { background: none; border: 1.5px dashed var(--border); color: var(--cobalt); font-size: 13px; font-weight: 700; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 6px; }
   .cal-add-form { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
   .cal-add-form select, .cal-add-form input, .cal-add-form textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
@@ -1403,15 +1405,20 @@ function navCalendar(delta) {
 
 function eventsForMonth() {
   const map = {};
-  const push = (dateStr, lead, type) => {
+  const push = (dateStr, obj, type) => {
     if (!dateStr) return;
     if (!map[dateStr]) map[dateStr] = [];
-    map[dateStr].push({ lead, type });
+    map[dateStr].push({ obj, type });
   };
   leads.forEach(l => {
     push(l.next_follow_up, l, 'followup');
     push(l.rate_lock_expiration, l, 'ratelock');
     push(l.closing_date, l, 'closing');
+  });
+  tasks.forEach(t => {
+    if (t.status === 'completed') return; // keep the calendar focused on what's still outstanding
+    const dateStr = t.due_at ? t.due_at.slice(0, 10) : null;
+    push(dateStr, t, 'task');
   });
   return map;
 }
@@ -1482,7 +1489,7 @@ function renderCalendar() {
   let panelHTML = '';
   if (selectedCalDay) {
     const evs = eventMap[selectedCalDay] || [];
-    const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing' };
+    const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing', task: 'Task' };
     const leadOptions = leads.map(l => `<option value="${l.id}">${l.first_name || ''} ${l.last_name || ''}</option>`).join('');
     panelHTML = `
       <div class="cal-day-panel">
@@ -1490,11 +1497,11 @@ function renderCalendar() {
         ${evs.length === 0
           ? `<div class="activity-empty">Nothing scheduled this day.</div>`
           : evs.map(e => `
-            <div class="cal-event-row" onclick="openLead('${e.lead.id}')">
+            <div class="cal-event-row" onclick="${e.type === 'task' ? `openTask('${e.obj.id}')` : `openLead('${e.obj.id}')`}">
               <span class="cal-event-tag ${e.type}">${tagLabel[e.type]}</span>
               <div>
-                <div style="font-weight:600;font-size:14px">${e.lead.first_name || ''} ${e.lead.last_name || ''}</div>
-                <div style="font-size:12px;color:var(--muted)">${e.lead.status}</div>
+                <div style="font-weight:600;font-size:14px">${e.type === 'task' ? e.obj.title : `${e.obj.first_name || ''} ${e.obj.last_name || ''}`}</div>
+                <div style="font-size:12px;color:var(--muted)">${e.type === 'task' ? (e.obj.status || '').replace(/_/g, ' ') : e.obj.status}</div>
               </div>
             </div>
           `).join('')
@@ -1528,6 +1535,7 @@ function renderCalendar() {
       <span><div class="cal-dot followup"></div>Follow-up</span>
       <span><div class="cal-dot ratelock"></div>Rate lock</span>
       <span><div class="cal-dot closing"></div>Closing</span>
+      <span><div class="cal-dot task"></div>Task</span>
     </div>
     ${panelHTML}
   `;
