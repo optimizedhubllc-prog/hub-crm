@@ -970,7 +970,30 @@ async function submitAuth() {
   }
 }
 
-async function signOut() { await supabase.auth.signOut(); }
+let realtimeChannel = null;
+
+function setupRealtimeSubscriptions() {
+  if (realtimeChannel) return;
+  realtimeChannel = supabase.channel('hub-crm-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+      loadLeads();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+      loadTasks();
+      if (currentView === 'today') renderToday();
+      if (currentView === 'calendar') renderCalendar();
+    })
+    .subscribe();
+}
+
+function teardownRealtimeSubscriptions() {
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+}
+
+async function signOut() { teardownRealtimeSubscriptions(); await supabase.auth.signOut(); }
 
 async function showApp() {
   document.getElementById('authScreen').style.display = 'none';
@@ -978,6 +1001,7 @@ async function showApp() {
   await fetchMyProfile();
   await loadLeads();
   await loadTasks();
+  setupRealtimeSubscriptions();
 }
 
 async function fetchMyProfile() {
