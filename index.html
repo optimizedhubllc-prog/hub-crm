@@ -327,6 +327,7 @@
     <div class="top-row">
       <h1>Hub <span>CRM</span></h1>
       <div class="header-actions">
+        <button class="add-btn" id="inviteBtn" style="display:none;background:rgba(255,255,255,0.12)" onclick="openInviteModal()">Invite</button>
         <button class="add-btn" style="background:rgba(255,255,255,0.12)" onclick="openImport()">Import</button>
         <button class="add-btn" onclick="openNewLead()">+ Add lead</button>
         <button class="logout-btn" onclick="signOut()">Log out</button>
@@ -577,6 +578,41 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="inviteModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="inviteModalTitle">Invite to Hub CRM</h2>
+      <button class="close-btn" onclick="closeInviteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Email</label>
+        <input id="inv_email" type="email" placeholder="name@example.com">
+      </div>
+      <div class="field">
+        <label>Full Name</label>
+        <input id="inv_full_name" placeholder="Jorge Caballer">
+      </div>
+      <div class="field" id="inv_role_wrap">
+        <label>Role</label>
+        <div class="status-picker" id="inviteRolePicker"></div>
+      </div>
+      <div class="field" id="inv_new_brokerage_wrap" style="display:none">
+        <label>New Brokerage Name</label>
+        <input id="inv_brokerage_name" placeholder="Onboard Mortgage">
+      </div>
+      <div class="field" id="inv_existing_brokerage_wrap" style="display:none">
+        <label>Brokerage</label>
+        <select id="inv_brokerage_id"></select>
+      </div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px">An email invite is sent immediately with a secure link to set a password.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="inviteSaveBtn" onclick="submitInvite()">Send Invite</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -600,6 +636,10 @@ const SOURCES = [
   'Client Referral', 'Realtor Referral', 'Past Client', 'Zillow',
   'Social Media', 'Website', 'Cold Import', 'Other'
 ];
+
+const N8N_INVITE_WEBHOOK = 'https://primary-production-c3ad.up.railway.app/webhook/invite-user';
+let inviteRole = 'lo';
+let inviteBrokerages = [];
 
 let leads = [];
 let tasks = [];
@@ -671,6 +711,10 @@ window.saveTask = saveTask;
 window.markTaskComplete = markTaskComplete;
 window.deleteTask = deleteTask;
 window.sendRealtorMilestoneSMS = sendRealtorMilestoneSMS;
+window.openInviteModal = openInviteModal;
+window.closeInviteModal = closeInviteModal;
+window.selectInviteRole = selectInviteRole;
+window.submitInvite = submitInvite;
 
 function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
 function todayStr() { return new Date().toISOString().slice(0, 10); }
@@ -947,6 +991,11 @@ async function fetchMyProfile() {
   document.getElementById('viewToggleTeam').style.display = showTeam ? 'block' : 'none';
   const showOps = myProfile.role === 'owner';
   document.getElementById('viewToggleOps').style.display = showOps ? 'block' : 'none';
+
+  const canInvite = ['owner', 'admin', 'broker'].includes(myProfile.role);
+  const inviteBtn = document.getElementById('inviteBtn');
+  inviteBtn.style.display = canInvite ? 'inline-block' : 'none';
+  inviteBtn.textContent = (myProfile.role === 'owner' || myProfile.role === 'admin') ? 'Invite' : 'Invite LO';
 
   if (myProfile.role === 'admin') {
     const { data: profs } = await supabase.from('profiles').select('*');
@@ -1913,6 +1962,114 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+async function openInviteModal() {
+  document.getElementById('inv_email').value = '';
+  document.getElementById('inv_full_name').value = '';
+  document.getElementById('inv_brokerage_name').value = '';
+
+  const isPrivileged = myProfile?.role === 'owner' || myProfile?.role === 'admin';
+  document.getElementById('inv_role_wrap').style.display = isPrivileged ? 'block' : 'none';
+  document.getElementById('inviteModalTitle').textContent = isPrivileged ? 'Invite to Hub CRM' : 'Invite a Loan Officer';
+  document.getElementById('inv_new_brokerage_wrap').style.display = 'none';
+  document.getElementById('inv_existing_brokerage_wrap').style.display = 'none';
+
+  if (isPrivileged) {
+    inviteRole = 'broker';
+    renderInviteRolePicker(inviteRole);
+    await updateInviteRoleFields();
+  } else {
+    inviteRole = 'lo';
+  }
+
+  document.getElementById('inviteSaveBtn').disabled = false;
+  document.getElementById('inviteSaveBtn').textContent = 'Send Invite';
+  document.getElementById('inviteModalOverlay').classList.add('open');
+}
+
+function renderInviteRolePicker(selected) {
+  const picker = document.getElementById('inviteRolePicker');
+  picker.innerHTML = ['broker', 'lo'].map(r =>
+    `<div class="status-option ${r === selected ? 'selected' : ''}" data-role="${r}" onclick="selectInviteRole('${r}')">${r === 'broker' ? 'Broker' : 'Loan Officer'}</div>`
+  ).join('');
+}
+
+async function selectInviteRole(r) {
+  inviteRole = r;
+  renderInviteRolePicker(r);
+  await updateInviteRoleFields();
+}
+
+async function updateInviteRoleFields() {
+  const newWrap = document.getElementById('inv_new_brokerage_wrap');
+  const existingWrap = document.getElementById('inv_existing_brokerage_wrap');
+  if (inviteRole === 'broker') {
+    newWrap.style.display = 'block';
+    existingWrap.style.display = 'none';
+  } else {
+    newWrap.style.display = 'none';
+    existingWrap.style.display = 'block';
+    if (!inviteBrokerages.length) {
+      const { data, error } = await supabase.from('brokerages').select('id,name').order('name');
+      if (!error) inviteBrokerages = data || [];
+    }
+    const sel = document.getElementById('inv_brokerage_id');
+    sel.innerHTML = inviteBrokerages.length
+      ? inviteBrokerages.map(b => `<option value="${b.id}">${b.name}</option>`).join('')
+      : '<option value="">No brokerages found</option>';
+  }
+}
+
+function closeInviteModal() { document.getElementById('inviteModalOverlay').classList.remove('open'); }
+
+async function submitInvite() {
+  const email = document.getElementById('inv_email').value.trim();
+  const fullName = document.getElementById('inv_full_name').value.trim();
+  if (!email) { showToast('Email is required.'); return; }
+
+  const isPrivileged = myProfile?.role === 'owner' || myProfile?.role === 'admin';
+  const payload = {
+    email,
+    full_name: fullName || null,
+    invited_by: currentUserId,
+  };
+
+  if (isPrivileged) {
+    payload.role = inviteRole;
+    if (inviteRole === 'broker') {
+      const brokerageName = document.getElementById('inv_brokerage_name').value.trim();
+      if (!brokerageName) { showToast('Brokerage name is required.'); return; }
+      payload.brokerage_name = brokerageName;
+    } else {
+      const brokerageId = document.getElementById('inv_brokerage_id').value;
+      if (!brokerageId) { showToast('Select a brokerage.'); return; }
+      payload.brokerage_id = brokerageId;
+    }
+  }
+
+  const btn = document.getElementById('inviteSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(N8N_INVITE_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok || result.success === false) {
+      throw new Error(result.error || `Invite failed (${res.status}).`);
+    }
+    showToast(`Invite sent to ${email}`);
+    closeInviteModal();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Invite';
+  }
 }
 
 async function saveLead() {
