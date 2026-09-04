@@ -1069,10 +1069,11 @@ function initials(l) { return ((l.first_name?.[0] || '') + (l.last_name?.[0] || 
 function renderToday() {
   const wrap = document.getElementById('todayWrap');
   const activeLeads = leads.filter(l => l.status !== 'Dead');
-  
-  const totalVolume = activeLeads.reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
-  const closingVolume = activeLeads
-    .filter(l => ['Under Contract', 'Processing', 'Underwriting', 'Clear to Close'].includes(l.status))
+
+  const pipelineLeads = leads.filter(l => !['Funded', 'Post-Close', 'Dead'].includes(l.status));
+  const totalVolume = pipelineLeads.reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
+  const closingVolume = leads
+    .filter(l => ['Under Contract', 'Processing', 'Underwriting', 'Clear to Close', 'Funded'].includes(l.status))
     .reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
 
   const overdueFollowups = activeLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up));
@@ -1769,6 +1770,9 @@ function openNewLead() {
   document.getElementById('modalTitle').textContent = 'New Loan File';
   document.getElementById('deleteBtn').style.display = 'none';
   document.getElementById('saveBtn').style.display = 'block';
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('saveBtn').classList.remove('saved');
+  document.getElementById('saveBtn').textContent = 'Save Lead';
   document.getElementById('editableFieldsWrap').style.display = 'block';
   document.getElementById('activityAddWrap').style.display = 'flex';
   document.getElementById('reassignPanel').style.display = 'none';
@@ -1830,6 +1834,9 @@ function openLead(id) {
   document.getElementById('modalTitle').textContent = `${l.first_name} ${l.last_name || ''}`.trim();
   document.getElementById('deleteBtn').style.display = (iAmOwner || iAmAdmin) ? 'block' : 'none';
   document.getElementById('saveBtn').style.display = showEditFields ? 'block' : 'none';
+  document.getElementById('saveBtn').disabled = false;
+  document.getElementById('saveBtn').classList.remove('saved');
+  document.getElementById('saveBtn').textContent = 'Save Lead';
   document.getElementById('editableFieldsWrap').style.display = showEditFields ? 'block' : 'none';
   document.getElementById('activityAddWrap').style.display = showEditFields ? 'flex' : 'none';
   document.getElementById('reassignPanel').style.display = showReassignPanel ? 'block' : 'none';
@@ -1971,6 +1978,7 @@ async function saveLead() {
     setTimeout(() => {
       saveBtn.classList.remove('saved');
       saveBtn.textContent = 'Save Lead';
+      saveBtn.disabled = false;
       closeModal();
     }, 450);
   } catch (err) {
