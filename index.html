@@ -296,6 +296,23 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .toast.show { opacity: 1; }
 
+  .dr-wrap { padding: 20px; padding-bottom: 100px; max-width: 640px; margin: 0 auto; }
+  .dr-hero { background: linear-gradient(135deg, var(--ink), #1F2937); color: white; border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .dr-hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--copper-light); margin-bottom: 6px; }
+  .dr-hero h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .dr-hero p { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+  .dr-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .dr-stat-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .dr-stat-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .dr-stat-value { font-size: 26px; font-weight: 800; color: var(--ink); }
+  .dr-stat-value.cobalt { color: var(--cobalt); }
+  .dr-stat-value.copper { color: var(--copper); }
+  .dr-note-card { background: var(--pearl); border-radius: 12px; padding: 16px 18px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .dr-note-card b { color: var(--ink); }
+  .dr-upgrade-card { border: 1.5px dashed var(--border); border-radius: 12px; padding: 16px 18px; margin-top: 12px; text-align: center; }
+  .dr-upgrade-card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .dr-upgrade-card a { color: var(--cobalt); font-weight: 700; font-size: 13px; text-decoration: none; }
+
   @media (min-width: 640px) {
     .modal-overlay { align-items: center; }
     .modal { border-radius: 16px; max-height: 88vh; margin: 20px; }
@@ -328,12 +345,12 @@
       <h1>Hub <span>CRM</span></h1>
       <div class="header-actions">
         <button class="add-btn" id="inviteBtn" style="display:none;background:rgba(255,255,255,0.12)" onclick="openInviteModal()">Invite</button>
-        <button class="add-btn" style="background:rgba(255,255,255,0.12)" onclick="openImport()">Import</button>
-        <button class="add-btn" onclick="openNewLead()">+ Add lead</button>
+        <button class="add-btn" id="importBtn" style="background:rgba(255,255,255,0.12)" onclick="openImport()">Import</button>
+        <button class="add-btn" id="addLeadBtn" onclick="openNewLead()">+ Add lead</button>
         <button class="logout-btn" onclick="signOut()">Log out</button>
       </div>
     </div>
-    <div class="search-row">
+    <div class="search-row" id="searchRow">
       <input class="search-input" id="searchInput" placeholder="Search name, phone, email, or realtor..." oninput="renderList()">
     </div>
   </header>
@@ -366,6 +383,7 @@
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
   <div class="team-wrap" id="teamWrap" style="display:none"></div>
   <div class="team-wrap" id="opsWrap" style="display:none"></div>
+  <div class="dr-wrap" id="drOnlyWrap" style="display:none"></div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -661,6 +679,7 @@ let currentUserId = null;
 let myBrokerageName = '';
 let modalMode = 'edit';
 let editingLeadSnapshot = null;
+let isDrOnly = false;
 
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
@@ -999,9 +1018,91 @@ async function showApp() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   await fetchMyProfile();
+
+  isDrOnly = !!(myProfile && myProfile.product_tier === 'dr_only');
+
+  if (isDrOnly) {
+    applyDrOnlyLayout();
+    await renderDrOnlyView();
+    return;
+  }
+
   await loadLeads();
   await loadTasks();
   setupRealtimeSubscriptions();
+}
+
+function applyDrOnlyLayout() {
+  document.getElementById('viewToggleRow').style.display = 'none';
+  document.getElementById('searchRow').style.display = 'none';
+  document.getElementById('addLeadBtn').style.display = 'none';
+  document.getElementById('importBtn').style.display = 'none';
+  document.getElementById('inviteBtn').style.display = 'none';
+  document.getElementById('todayWrap').style.display = 'none';
+  document.getElementById('tabs').style.display = 'none';
+  document.getElementById('list').style.display = 'none';
+  document.getElementById('tasksWrap').style.display = 'none';
+  document.getElementById('calendarWrap').style.display = 'none';
+  document.getElementById('teamWrap').style.display = 'none';
+  document.getElementById('opsWrap').style.display = 'none';
+  document.getElementById('drOnlyWrap').style.display = 'block';
+}
+
+async function renderDrOnlyView() {
+  const wrap = document.getElementById('drOnlyWrap');
+  wrap.innerHTML = `<div class="today-empty">Loading your reactivation status...</div>`;
+
+  const { data, error } = await supabase
+    .from('reactivation_campaigns')
+    .select('*')
+    .eq('owner_lo', currentUserId);
+
+  if (error) {
+    wrap.innerHTML = `<div class="empty-state"><h3>Status unavailable</h3><p>${error.message}</p></div>`;
+    return;
+  }
+
+  const campaigns = data || [];
+  const total = campaigns.length;
+  const active = campaigns.filter(c => c.status === 'active' && !c.dnc).length;
+  const touched = campaigns.filter(c => (c.sequence_step || 0) > 0).length;
+  const optedOut = campaigns.filter(c => c.dnc).length;
+  const name = (myProfile.full_name || '').split(' ')[0] || 'there';
+
+  wrap.innerHTML = `
+    <div class="dr-hero">
+      <div class="dr-hero-eyebrow">Database Reactivation</div>
+      <h2>Hi ${name}, here's your reactivation status.</h2>
+      <p>This runs automatically in the background — no action needed from you unless a lead replies directly.</p>
+    </div>
+    <div class="dr-stat-grid">
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Leads enrolled</div>
+        <div class="dr-stat-value">${total}</div>
+      </div>
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Active in sequence</div>
+        <div class="dr-stat-value cobalt">${active}</div>
+      </div>
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Touches sent</div>
+        <div class="dr-stat-value copper">${touched}</div>
+      </div>
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Opted out</div>
+        <div class="dr-stat-value">${optedOut}</div>
+      </div>
+    </div>
+    ${total === 0 ? `
+      <div class="dr-note-card"><b>Nothing enrolled yet.</b> Once your database is loaded, this dashboard will fill in automatically.</div>
+    ` : `
+      <div class="dr-note-card">Your leads are being worked automatically on a set schedule. <b>${touched}</b> have received at least one outreach message so far.</div>
+    `}
+    <div class="dr-upgrade-card">
+      <p>Want the full CRM — loan pipeline, tasks, calendar — alongside your reactivation? </p>
+      <a href="mailto:optimizedhubllc@gmail.com?subject=Upgrade to CRM">Ask about upgrading</a>
+    </div>
+  `;
 }
 
 async function fetchMyProfile() {
