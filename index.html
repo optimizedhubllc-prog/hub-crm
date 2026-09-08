@@ -258,6 +258,7 @@
 
   .section-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 22px 0 10px; }
   .section-label:first-child { margin-top: 0; }
+  .section-hint { font-size: 12px; color: var(--muted); line-height: 1.5; margin: -4px 0 10px; }
 
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
@@ -285,6 +286,22 @@
   .activity-add { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1.5px dashed var(--border); border-radius: 10px; }
   .activity-add input { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
   .activity-add-btn { align-self: flex-end; background: var(--ink); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  .pu-log { margin-bottom: 6px; }
+  .pu-entry { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: white; }
+  .pu-entry.sent { background: var(--pearl); }
+  .pu-entry.muted { opacity: 0.65; }
+  .pu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+  .pu-transition { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .pu-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; flex-shrink: 0; }
+  .pu-badge.ok { background: #D1FAE5; color: #047857; }
+  .pu-badge.warn { background: #FEF3C7; color: #B45309; }
+  .pu-badge.bad { background: #FEF2F2; color: var(--danger); }
+  .pu-badge.neutral { background: #F1F5F9; color: var(--muted); }
+  .pu-time { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .pu-msg { font-size: 13px; color: var(--ink); line-height: 1.45; margin-top: 7px; padding-left: 10px; border-left: 2px solid var(--border); }
+  .pu-err { font-size: 12px; color: var(--danger); margin-top: 6px; line-height: 1.4; }
+  .pu-hint { font-size: 12px; color: var(--cobalt); font-weight: 600; margin-top: 6px; line-height: 1.4; }
 
   .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
   .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
@@ -504,6 +521,12 @@
         </div>
       </div>
 
+      <div id="partnerUpdatesSection" style="display:none">
+        <div class="section-label">Partner Updates</div>
+        <div class="section-hint">Sent automatically to the referral partner each time this file changes stage.</div>
+        <div class="pu-log" id="partnerUpdates"></div>
+      </div>
+
       <div class="section-label">Follow-up Log</div>
       <div class="activity-log" id="activityLog"></div>
       <div class="activity-add" id="activityAddWrap">
@@ -515,6 +538,31 @@
     <div class="modal-footer">
       <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteLead()">Delete File</button>
       <button class="btn btn-primary" id="saveBtn" onclick="saveLead()">Save Lead</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="agentMsgOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Message Agent</h2>
+      <button class="close-btn" onclick="closeAgentMessage()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dr-note-card" style="margin-bottom:16px">
+        <b id="agentMsgContext"></b>
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea id="agentMsgBody" style="min-height:130px" placeholder="Write your message..."></textarea>
+      </div>
+      <div class="section-hint" style="margin:0">
+        Stage milestones already send to this partner automatically. Use this for anything the system won't cover —
+        a question, a document request, or a heads-up between milestones.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="sendAgentMessage()">Open in Messages</button>
     </div>
   </div>
 </div>
@@ -655,6 +703,18 @@ const SOURCES = [
   'Social Media', 'Website', 'Cold Import', 'Other'
 ];
 
+const SEND_STATUS_META = {
+  sent:                      { label: 'Sent',                    badge: 'ok',      muted: false },
+  pending:                   { label: 'Queued',                  badge: 'warn',    muted: false },
+  failed:                    { label: 'Failed to send',          badge: 'bad',     muted: false },
+  skipped_no_realtor_phone:  { label: 'No agent phone',          badge: 'warn',    muted: false },
+  skipped_opted_out:         { label: 'Agent opted out',         badge: 'neutral', muted: false },
+  skipped_no_template:       { label: 'No template',             badge: 'neutral', muted: true  },
+  skipped_not_notifiable:    { label: 'No update for this stage',badge: 'neutral', muted: true  },
+  skipped_lead_missing:      { label: 'File not found',          badge: 'neutral', muted: true  },
+  skipped_stale:             { label: 'Skipped — too old',       badge: 'neutral', muted: true  },
+};
+
 const N8N_INVITE_WEBHOOK = 'https://primary-production-c3ad.up.railway.app/webhook/invite-user';
 let inviteRole = 'lo';
 let inviteBrokerages = [];
@@ -680,6 +740,7 @@ let myBrokerageName = '';
 let modalMode = 'edit';
 let editingLeadSnapshot = null;
 let isDrOnly = false;
+let agentMsgLeadId = null;
 
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
@@ -729,13 +790,20 @@ window.closeTaskModal = closeTaskModal;
 window.saveTask = saveTask;
 window.markTaskComplete = markTaskComplete;
 window.deleteTask = deleteTask;
-window.sendRealtorMilestoneSMS = sendRealtorMilestoneSMS;
+window.openAgentMessage = openAgentMessage;
+window.closeAgentMessage = closeAgentMessage;
+window.sendAgentMessage = sendAgentMessage;
 window.openInviteModal = openInviteModal;
 window.closeInviteModal = closeInviteModal;
 window.selectInviteRole = selectInviteRole;
 window.submitInvite = submitInvite;
 
 function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 function fmtDate(d) {
   if (!d) return '';
@@ -1002,6 +1070,9 @@ function setupRealtimeSubscriptions() {
       if (currentView === 'today') renderToday();
       if (currentView === 'calendar') renderCalendar();
     })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'milestone_events' }, () => {
+      if (editingId) loadPartnerUpdates(editingId);
+    })
     .subscribe();
 }
 
@@ -1159,7 +1230,7 @@ function quickActionsHTML(l, big) {
       <a class="${cls} ${!call ? 'disabled' : ''}" href="${call || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">📞</span>Call Borrower</a>
       <a class="${cls} ${!text ? 'disabled' : ''}" href="${text || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">💬</span>Text Borrower</a>
       <a class="${cls} ${!mail ? 'disabled' : ''}" href="${mail || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">✉️</span>Email</a>
-      ${l.realtor_phone ? `<button class="${cls}" type="button" onclick="sendRealtorMilestoneSMS('${l.id}')"><span class="qa-icon">🤝</span>Update Agent</button>` : ''}
+      ${l.realtor_phone ? `<button class="${cls}" type="button" onclick="openAgentMessage('${l.id}')"><span class="qa-icon">🤝</span>Message Agent</button>` : ''}
     `;
   }
   return `
@@ -1169,17 +1240,85 @@ function quickActionsHTML(l, big) {
   `;
 }
 
-function sendRealtorMilestoneSMS(id) {
+function openAgentMessage(id) {
   const l = leads.find(x => x.id === id);
   if (!l || !l.realtor_phone) {
     showToast('No agent phone number on file.');
     return;
   }
+  agentMsgLeadId = id;
+  const agentFirst = l.realtor_name ? l.realtor_name.split(' ')[0] : 'there';
+  const borrower = `${l.first_name || ''} ${l.last_name || ''}`.trim();
+  document.getElementById('agentMsgContext').textContent =
+    `To ${l.realtor_name || 'Agent'} · ${l.realtor_phone} · re: ${borrower}`;
+  document.getElementById('agentMsgBody').value = `Hi ${agentFirst}, `;
+  document.getElementById('agentMsgOverlay').classList.add('open');
+  setTimeout(() => {
+    const ta = document.getElementById('agentMsgBody');
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }, 80);
+}
+
+function closeAgentMessage() {
+  document.getElementById('agentMsgOverlay').classList.remove('open');
+}
+
+function sendAgentMessage() {
+  const l = leads.find(x => x.id === agentMsgLeadId);
+  if (!l || !l.realtor_phone) { showToast('No agent phone number on file.'); return; }
+  const body = document.getElementById('agentMsgBody').value.trim();
+  if (!body) { showToast('Enter a message first.'); return; }
   const cleanPhone = l.realtor_phone.replace(/[^0-9+]/g, '');
-  const agentName = l.realtor_name ? l.realtor_name.split(' ')[0] : 'Partner';
-  const closeNotice = l.closing_date ? ` On track for closing on ${fmtDate(l.closing_date)}.` : '';
-  const msg = encodeURIComponent(`Hi ${agentName}, milestone update regarding ${l.first_name} ${l.last_name || ''}: File status is currently [${l.status.toUpperCase()}].${closeNotice}`);
-  window.open(`sms:${cleanPhone}?&body=${msg}`, '_blank');
+  window.open(`sms:${cleanPhone}?&body=${encodeURIComponent(body)}`, '_blank');
+  closeAgentMessage();
+}
+
+function renderPartnerUpdate(e) {
+  const meta = SEND_STATUS_META[e.send_status] || { label: e.send_status, badge: 'neutral', muted: true };
+  const rowCls = e.send_status === 'sent' ? 'sent' : (meta.muted ? 'muted' : '');
+  const transition = `${escapeHtml(e.old_status || 'New')} → ${escapeHtml(e.new_status)}`;
+  const when = fmtDateTime(e.changed_at);
+  const who = e.recipient_phone ? ` · ${escapeHtml(e.recipient_phone)}` : '';
+  return `
+    <div class="pu-entry ${rowCls}">
+      <div class="pu-head">
+        <span class="pu-transition">${transition}</span>
+        <span class="pu-badge ${meta.badge}">${escapeHtml(meta.label)}</span>
+      </div>
+      <div class="pu-time">${when}${who}</div>
+      ${e.message_sent ? `<div class="pu-msg">${escapeHtml(e.message_sent)}</div>` : ''}
+      ${e.error_message ? `<div class="pu-err">${escapeHtml(e.error_message)}</div>` : ''}
+      ${e.send_status === 'skipped_no_realtor_phone'
+        ? `<div class="pu-hint">Add an agent phone number above and future milestones will notify them automatically.</div>` : ''}
+      ${e.send_status === 'failed'
+        ? `<div class="pu-hint">This one didn't go out. Use Message Agent above to send it manually.</div>` : ''}
+    </div>
+  `;
+}
+
+async function loadPartnerUpdates(leadId) {
+  const wrap = document.getElementById('partnerUpdates');
+  if (!wrap) return;
+  wrap.innerHTML = `<div class="activity-empty">Loading partner updates...</div>`;
+
+  const { data, error } = await supabase
+    .from('milestone_events')
+    .select('*')
+    .eq('lead_id', leadId)
+    .order('changed_at', { ascending: false });
+
+  if (error) {
+    wrap.innerHTML = `<div class="activity-empty">Partner updates unavailable: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  const evs = data || [];
+  if (!evs.length) {
+    wrap.innerHTML = `<div class="activity-empty">No stage changes yet. The first partner text sends automatically when this file moves to a new stage.</div>`;
+    return;
+  }
+  wrap.innerHTML = evs.map(renderPartnerUpdate).join('');
 }
 
 function renderTabs() {
@@ -1950,6 +2089,7 @@ function openNewLead() {
   document.getElementById('editableFieldsWrap').style.display = 'block';
   document.getElementById('activityAddWrap').style.display = 'flex';
   document.getElementById('reassignPanel').style.display = 'none';
+  document.getElementById('partnerUpdatesSection').style.display = 'none';
   document.getElementById('quickActionRow').innerHTML = '';
   document.getElementById('leadCard').classList.remove('show');
   document.getElementById('duplicateWarning').classList.remove('show');
@@ -2047,6 +2187,10 @@ function openLead(id) {
   renderSourcePicker(knownSource);
   if (knownSource === 'Other') document.getElementById('f_source_other').value = l.source || '';
   renderActivityLog();
+
+  document.getElementById('partnerUpdatesSection').style.display = 'block';
+  loadPartnerUpdates(id);
+
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -2080,7 +2224,10 @@ async function reassignLead() {
   }
 }
 
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModal() {
+  editingId = null;
+  document.getElementById('modalOverlay').classList.remove('open');
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -2246,11 +2393,13 @@ async function saveLead() {
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving File...';
 
+  const statusChanged = !!(editingId && originalStatus && originalStatus !== selectedStatus);
+
   try {
     if (editingId) {
       const { error } = await supabase.from('leads').update(payload).eq('id', editingId);
       if (error) throw error;
-      showToast('File updated');
+      showToast(statusChanged && payload.realtor_phone ? 'File updated · partner update queued' : 'File updated');
     } else {
       const { data: { user } } = await supabase.auth.getUser();
       payload.created_by = user?.id || null;
