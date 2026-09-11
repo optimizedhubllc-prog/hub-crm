@@ -247,8 +247,8 @@
   .lead-card-tag { background: rgba(255,255,255,0.14); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
   .lead-card-age { font-size: 12px; color: rgba(255,255,255,0.65); }
 
-  .quick-action-row { display: flex; gap: 10px; margin-bottom: 20px; }
-  .qa-big { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--pearl); text-decoration: none; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
+  .quick-action-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .qa-big { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--pearl); text-decoration: none; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; min-width: 90px; }
   .qa-big .qa-icon { font-size: 20px; }
   .qa-big.disabled { opacity: 0.35; pointer-events: none; }
 
@@ -331,6 +331,36 @@
   .dr-upgrade-card p { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
   .dr-upgrade-card a { color: var(--cobalt); font-weight: 700; font-size: 13px; text-decoration: none; }
 
+  .contacts-header { margin-bottom: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .contacts-header h2 { font-size: 20px; font-weight: 700; }
+  .contacts-header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .contact-cat-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 14px; -ms-overflow-style: none; scrollbar-width: none; }
+  .contact-cat-tabs::-webkit-scrollbar { display: none; }
+  .contact-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; background: white; }
+  .contact-card:hover { background: #FAFBFD; }
+  .contact-card-avatar { width: 38px; height: 38px; border-radius: 10px; background: var(--cobalt); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .contact-card-info { flex: 1; min-width: 0; }
+  .contact-card-name { font-size: 14px; font-weight: 700; }
+  .contact-card-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .contact-cat-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #F1F5F9; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+
+  .letter-toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .letter-warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; font-size: 12px; padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; line-height: 1.5; }
+  .letter-demo-banner { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1D4ED8; font-size: 12px; font-weight: 700; padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.02em; }
+  .letter-page { border: 1px solid var(--border); border-radius: 10px; padding: 28px; background: white; font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; font-size: 13px; line-height: 1.55; }
+  .letter-page h3 { font-family: -apple-system, sans-serif; text-align: center; font-size: 17px; letter-spacing: 0.04em; margin: 14px 0 18px; }
+  .letter-head { display: flex; flex-direction: column; align-items: center; margin-bottom: 4px; }
+  .letter-head img { height: 44px; object-fit: contain; margin-bottom: 4px; }
+  .letter-head .lh-name { font-family: -apple-system, sans-serif; font-weight: 800; font-size: 18px; }
+  .letter-head .lh-nmls { font-size: 11px; color: #555; }
+  .letter-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin: 16px 0; font-size: 12.5px; }
+  .letter-meta-grid .lbl { color: #666; }
+  .letter-terms { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin: 16px 0; font-size: 12.5px; }
+  .letter-terms .big { font-size: 18px; font-weight: 800; font-family: -apple-system, sans-serif; }
+  .letter-check { display: inline-flex; align-items: center; gap: 4px; }
+  .letter-sig { margin-top: 20px; font-size: 12.5px; }
+  .letter-disclaimer { font-size: 11px; color: #444; margin: 16px 0; line-height: 1.6; }
+
   @media (min-width: 640px) {
     .modal-overlay { align-items: center; }
     .modal { border-radius: 16px; max-height: 88vh; margin: 20px; }
@@ -381,6 +411,7 @@
     <button class="view-toggle-btn" id="viewToggleList" onclick="setView('list')">Pipeline</button>
     <button class="view-toggle-btn" id="viewToggleTasks" onclick="setView('tasks')">Tasks</button>
     <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
+    <button class="view-toggle-btn" id="viewToggleContacts" onclick="setView('contacts')">Contacts</button>
     <button class="view-toggle-btn" id="viewToggleTeam" onclick="setView('team')" style="display:none">Brokerage</button>
     <button class="view-toggle-btn" id="viewToggleOps" onclick="setView('ops')" style="display:none">Ops</button>
   </div>
@@ -402,6 +433,7 @@
   </div>
 
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
+  <div class="team-wrap" id="contactsWrap" style="display:none"></div>
   <div class="team-wrap" id="teamWrap" style="display:none"></div>
   <div class="team-wrap" id="opsWrap" style="display:none"></div>
   <div class="dr-wrap" id="drOnlyWrap" style="display:none"></div>
@@ -482,7 +514,34 @@
         </div>
 
         <div class="section-label">Referral Partner (Realtor)</div>
-        <div class="field-row">
+        <div class="field">
+          <label>Select Realtor</label>
+          <select id="f_realtor_select" onchange="handleRealtorSelect()"></select>
+        </div>
+        <div id="inlineAddRealtorWrap" style="display:none">
+          <div class="field-row">
+            <div class="field">
+              <label>New Realtor Name</label>
+              <input id="ir_name" placeholder="Sarah Miller">
+            </div>
+            <div class="field">
+              <label>Brokerage / Company</label>
+              <input id="ir_company" placeholder="Realty One">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Phone</label>
+              <input id="ir_phone" type="tel" placeholder="(813) 555-0199">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input id="ir_email" type="email" placeholder="sarah@realtyone.com">
+            </div>
+          </div>
+          <button type="button" class="activity-add-btn" style="width:100%;margin-bottom:16px" onclick="saveInlineRealtor()">+ Save Realtor to Business Contacts</button>
+        </div>
+        <div class="field-row" id="realtorManualWrap" style="display:none">
           <div class="field">
             <label>Agent Name & Brokerage</label>
             <input id="f_realtor_name" placeholder="Sarah Miller (Realty One)">
@@ -683,6 +742,130 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="contactModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="contactModalTitle">New Contact</h2>
+      <button class="close-btn" onclick="closeContactModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Category</label>
+        <div class="status-picker" id="contactCategoryPicker"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>First Name</label>
+          <input id="c_first_name" placeholder="Sarah">
+        </div>
+        <div class="field">
+          <label>Last Name</label>
+          <input id="c_last_name" placeholder="Miller">
+        </div>
+      </div>
+      <div class="field">
+        <label>Company / Brokerage</label>
+        <input id="c_company_name" placeholder="Realty One">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Phone</label>
+          <input id="c_phone" type="tel" placeholder="(813) 555-0199">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input id="c_email" type="email" placeholder="sarah@realtyone.com">
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="c_notes" placeholder="How you know them, preferred contact method, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="contactSaveBtn" onclick="saveContact()">Save Contact</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="letterModalOverlay">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header">
+      <h2>Pre-Approval Letter</h2>
+      <button class="close-btn" onclick="closeLetterModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="letterWarnings"></div>
+      <div class="section-label" style="margin-top:0">Loan Terms</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Purchase Price ($)</label>
+          <input id="lt_purchase_price" type="number" placeholder="425000" oninput="renderLetterPreview()">
+        </div>
+        <div class="field">
+          <label>Loan Amount ($)</label>
+          <input id="lt_loan_amount" type="number" placeholder="410000" oninput="renderLetterPreview()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Loan Term</label>
+          <select id="lt_loan_term" onchange="renderLetterPreview()">
+            <option>30 years</option>
+            <option>20 years</option>
+            <option>15 years</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Loan Limit Type</label>
+          <select id="lt_loan_limit_type" onchange="renderLetterPreview()">
+            <option>Conforming</option>
+            <option>High Balance</option>
+            <option>Jumbo</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Loan Type</label>
+          <input id="lt_loan_type" placeholder="FHA, Conventional, VA, USDA..." oninput="renderLetterPreview()">
+        </div>
+        <div class="field">
+          <label>Occupancy</label>
+          <select id="lt_occupancy" onchange="renderLetterPreview()">
+            <option>Primary Residence</option>
+            <option>Second Home</option>
+            <option>Investment Property</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Property Address</label>
+        <input id="lt_address" placeholder="Tampa, FL, 33615 (TBD)" oninput="renderLetterPreview()">
+      </div>
+      <div class="field">
+        <label>Verification Checklist</label>
+        <div class="tag-picker" id="lt_checklist">
+          <div class="tag-option selected" data-check="credit" onclick="toggleLetterCheck('credit')">Credit Reviewed</div>
+          <div class="tag-option selected" data-check="income" onclick="toggleLetterCheck('income')">Income Documented</div>
+          <div class="tag-option selected" data-check="assets" onclick="toggleLetterCheck('assets')">Assets Verified</div>
+          <div class="tag-option selected" data-check="aus" onclick="toggleLetterCheck('aus')">AUS Approval</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Your NMLS Number</label>
+        <input id="lt_nmls" placeholder="Not on file — enter for this letter" oninput="renderLetterPreview()">
+      </div>
+
+      <div class="section-label">Preview</div>
+      <div class="letter-page" id="letterPreview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="printLetter()">Preview / Print Demo Letter</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -746,6 +929,22 @@ let editingLeadSnapshot = null;
 let isDrOnly = false;
 let agentMsgLeadId = null;
 
+const CONTACT_CATEGORIES = [
+  { key: 'realtor', label: 'Realtor' },
+  { key: 'home_inspector', label: 'Home Inspector' },
+  { key: 'title_company', label: 'Title Company' },
+  { key: 'credit_repair', label: 'Credit Repair' },
+  { key: 'loan_officer', label: 'Loan Officer' },
+  { key: 'other', label: 'Other' },
+];
+let contacts = [];
+let editingContactId = null;
+let contactCategoryDraft = 'realtor';
+let contactCatFilter = 'All';
+let letterLeadId = null;
+let letterChecklist = { credit: true, income: true, assets: true, aus: true };
+let myBrokerageRecord = null;
+
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
   if (el && document.getElementById('authScreen').style.display !== 'none') {
@@ -801,6 +1000,19 @@ window.openInviteModal = openInviteModal;
 window.closeInviteModal = closeInviteModal;
 window.selectInviteRole = selectInviteRole;
 window.submitInvite = submitInvite;
+window.openNewContact = openNewContact;
+window.openContact = openContact;
+window.closeContactModal = closeContactModal;
+window.saveContact = saveContact;
+window.setContactCatFilter = setContactCatFilter;
+window.selectContactCategory = selectContactCategory;
+window.handleRealtorSelect = handleRealtorSelect;
+window.saveInlineRealtor = saveInlineRealtor;
+window.openLetterModal = openLetterModal;
+window.closeLetterModal = closeLetterModal;
+window.renderLetterPreview = renderLetterPreview;
+window.toggleLetterCheck = toggleLetterCheck;
+window.printLetter = printLetter;
 
 function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
 function escapeHtml(s) {
@@ -1104,6 +1316,7 @@ async function showApp() {
 
   await loadLeads();
   await loadTasks();
+  await loadContacts();
   setupRealtimeSubscriptions();
 }
 
@@ -1118,6 +1331,7 @@ function applyDrOnlyLayout() {
   document.getElementById('list').style.display = 'none';
   document.getElementById('tasksWrap').style.display = 'none';
   document.getElementById('calendarWrap').style.display = 'none';
+  document.getElementById('contactsWrap').style.display = 'none';
   document.getElementById('teamWrap').style.display = 'none';
   document.getElementById('opsWrap').style.display = 'none';
   document.getElementById('drOnlyWrap').style.display = 'block';
@@ -1235,6 +1449,7 @@ function quickActionsHTML(l, big) {
       <a class="${cls} ${!text ? 'disabled' : ''}" href="${text || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">💬</span>Text Borrower</a>
       <a class="${cls} ${!mail ? 'disabled' : ''}" href="${mail || '#'}" onclick="event.stopPropagation()"><span class="qa-icon">✉️</span>Email</a>
       ${l.realtor_phone ? `<button class="${cls}" type="button" onclick="openAgentMessage('${l.id}')"><span class="qa-icon">🤝</span>Message Agent</button>` : ''}
+      <button class="${cls}" type="button" onclick="openLetterModal('${l.id}')"><span class="qa-icon">📄</span>Pre-Approval Letter</button>
     `;
   }
   return `
@@ -1341,6 +1556,7 @@ function setView(v) {
   document.getElementById('viewToggleList').classList.toggle('active', v === 'list');
   document.getElementById('viewToggleTasks').classList.toggle('active', v === 'tasks');
   document.getElementById('viewToggleCalendar').classList.toggle('active', v === 'calendar');
+  document.getElementById('viewToggleContacts').classList.toggle('active', v === 'contacts');
   document.getElementById('viewToggleTeam').classList.toggle('active', v === 'team');
   document.getElementById('viewToggleOps').classList.toggle('active', v === 'ops');
   document.getElementById('todayWrap').style.display = v === 'today' ? 'block' : 'none';
@@ -1348,12 +1564,14 @@ function setView(v) {
   document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
   document.getElementById('tasksWrap').style.display = v === 'tasks' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = v === 'calendar' ? 'block' : 'none';
+  document.getElementById('contactsWrap').style.display = v === 'contacts' ? 'block' : 'none';
   document.getElementById('teamWrap').style.display = v === 'team' ? 'block' : 'none';
   document.getElementById('opsWrap').style.display = v === 'ops' ? 'block' : 'none';
   renderBrokerFilterBanner();
   if (v === 'today') renderToday();
   if (v === 'tasks') renderTasks();
   if (v === 'calendar') renderCalendar();
+  if (v === 'contacts') renderContacts();
   if (v === 'team') renderTeam();
   if (v === 'ops') renderOps();
   if (v === 'list') renderList();
@@ -1640,6 +1858,235 @@ async function loadTasks() {
   if (currentView === 'tasks') renderTasks();
 }
 
+async function loadContacts() {
+  const { data, error } = await supabase.from('contacts').select('*').order('company_name', { ascending: true });
+  if (error) { console.error(error); contacts = []; return; }
+  contacts = data || [];
+  if (currentView === 'contacts') renderContacts();
+}
+
+function contactDisplayName(c) {
+  const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+  return name || c.company_name || 'Unnamed contact';
+}
+function contactInitials(c) {
+  const name = contactDisplayName(c);
+  return name.slice(0, 2).toUpperCase() || '?';
+}
+function contactCatLabel(key) {
+  const found = CONTACT_CATEGORIES.find(c => c.key === key);
+  return found ? found.label : key;
+}
+
+function setContactCatFilter(key) {
+  contactCatFilter = key;
+  renderContacts();
+}
+
+function renderContacts() {
+  const wrap = document.getElementById('contactsWrap');
+  const filtered = contactCatFilter === 'All' ? contacts : contacts.filter(c => c.category === contactCatFilter);
+
+  const tabsHTML = `
+    <div class="contact-cat-tabs">
+      <button class="tab ${contactCatFilter === 'All' ? 'active' : ''}" onclick="setContactCatFilter('All')">All (${contacts.length})</button>
+      ${CONTACT_CATEGORIES.map(c => {
+        const count = contacts.filter(x => x.category === c.key).length;
+        return `<button class="tab ${contactCatFilter === c.key ? 'active' : ''}" onclick="setContactCatFilter('${c.key}')">${c.label} (${count})</button>`;
+      }).join('')}
+    </div>
+  `;
+
+  const listHTML = filtered.length === 0
+    ? `<div class="empty-state"><div class="icon">🤝</div><h3>No contacts yet</h3><p>Realtors, inspectors, title companies, and other referral partners live here — separate from your borrower pipeline.</p></div>`
+    : filtered.map(c => `
+      <div class="contact-card" onclick="openContact('${c.id}')">
+        <div class="contact-card-avatar">${contactInitials(c)}</div>
+        <div class="contact-card-info">
+          <div class="contact-card-name">${contactDisplayName(c)}${c.company_name && (c.first_name || c.last_name) ? ` · ${c.company_name}` : ''}</div>
+          <div class="contact-card-detail">${[c.phone, c.email].filter(Boolean).join(' · ') || 'No contact info on file'}</div>
+        </div>
+        <span class="contact-cat-badge">${contactCatLabel(c.category)}</span>
+      </div>
+    `).join('');
+
+  wrap.innerHTML = `
+    <div class="contacts-header">
+      <div>
+        <h2>Business Contacts</h2>
+        <p>Referral partners shared across your brokerage — realtors, inspectors, title companies, and more.</p>
+      </div>
+      <button class="team-export-btn" onclick="openNewContact()">+ Add Contact</button>
+    </div>
+    ${tabsHTML}
+    ${listHTML}
+  `;
+}
+
+function renderContactCategoryPicker(selected) {
+  const picker = document.getElementById('contactCategoryPicker');
+  picker.innerHTML = CONTACT_CATEGORIES.map(c =>
+    `<div class="status-option ${c.key === selected ? 'selected' : ''}" data-cat="${c.key}" onclick="selectContactCategory('${c.key}')">${c.label}</div>`
+  ).join('');
+}
+function selectContactCategory(key) {
+  contactCategoryDraft = key;
+  renderContactCategoryPicker(key);
+}
+
+function openNewContact(presetName) {
+  editingContactId = null;
+  contactCategoryDraft = 'realtor';
+  document.getElementById('contactModalTitle').textContent = 'New Contact';
+  document.getElementById('c_first_name').value = presetName || '';
+  document.getElementById('c_last_name').value = '';
+  document.getElementById('c_company_name').value = '';
+  document.getElementById('c_phone').value = '';
+  document.getElementById('c_email').value = '';
+  document.getElementById('c_notes').value = '';
+  renderContactCategoryPicker('realtor');
+  document.getElementById('contactModalOverlay').classList.add('open');
+}
+
+function openContact(id) {
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  editingContactId = id;
+  contactCategoryDraft = c.category;
+  document.getElementById('contactModalTitle').textContent = 'Edit Contact';
+  document.getElementById('c_first_name').value = c.first_name || '';
+  document.getElementById('c_last_name').value = c.last_name || '';
+  document.getElementById('c_company_name').value = c.company_name || '';
+  document.getElementById('c_phone').value = c.phone || '';
+  document.getElementById('c_email').value = c.email || '';
+  document.getElementById('c_notes').value = c.notes || '';
+  renderContactCategoryPicker(c.category);
+  document.getElementById('contactModalOverlay').classList.add('open');
+}
+
+function closeContactModal() { document.getElementById('contactModalOverlay').classList.remove('open'); }
+
+async function saveContact() {
+  const firstName = document.getElementById('c_first_name').value.trim();
+  const companyName = document.getElementById('c_company_name').value.trim();
+  if (!firstName && !companyName) { showToast('Enter a name or company.'); return; }
+
+  const payload = {
+    category: contactCategoryDraft,
+    first_name: firstName || null,
+    last_name: document.getElementById('c_last_name').value.trim() || null,
+    company_name: companyName || null,
+    phone: document.getElementById('c_phone').value.trim() || null,
+    email: document.getElementById('c_email').value.trim() || null,
+    notes: document.getElementById('c_notes').value.trim() || null,
+  };
+
+  const btn = document.getElementById('contactSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    if (editingContactId) {
+      const { error } = await supabase.from('contacts').update(payload).eq('id', editingContactId);
+      if (error) throw error;
+      showToast('Contact updated');
+    } else {
+      payload.brokerage_id = myProfile?.brokerage_id || null;
+      payload.created_by = currentUserId;
+      const { error } = await supabase.from('contacts').insert(payload);
+      if (error) throw error;
+      showToast('Contact added');
+    }
+    closeContactModal();
+    await loadContacts();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Contact';
+  }
+}
+
+function populateRealtorSelect(currentName) {
+  const sel = document.getElementById('f_realtor_select');
+  const realtors = contacts.filter(c => c.category === 'realtor');
+  const options = ['<option value="">— Select existing realtor —</option>']
+    .concat(realtors.map(c => {
+      const label = `${contactDisplayName(c)}${c.company_name ? ` (${c.company_name})` : ''}`;
+      return `<option value="${c.id}" data-name="${escapeHtml(label)}" data-phone="${escapeHtml(c.phone || '')}">${label}</option>`;
+    }))
+    .concat(['<option value="__manual__">Type manually (not in Contacts)</option>', '<option value="__new__">+ Add New Realtor Contact</option>']);
+  sel.innerHTML = options.join('');
+
+  document.getElementById('inlineAddRealtorWrap').style.display = 'none';
+  document.getElementById('realtorManualWrap').style.display = 'none';
+
+  if (currentName) {
+    const match = realtors.find(c => `${contactDisplayName(c)}${c.company_name ? ` (${c.company_name})` : ''}` === currentName);
+    if (match) {
+      sel.value = match.id;
+    } else {
+      sel.value = '__manual__';
+      document.getElementById('realtorManualWrap').style.display = 'flex';
+    }
+  } else {
+    sel.value = '';
+  }
+}
+
+function handleRealtorSelect() {
+  const sel = document.getElementById('f_realtor_select');
+  const val = sel.value;
+  document.getElementById('inlineAddRealtorWrap').style.display = val === '__new__' ? 'block' : 'none';
+  document.getElementById('realtorManualWrap').style.display = (val === '__manual__' || val === '') ? 'flex' : 'none';
+
+  if (val === '__new__' || val === '__manual__' || val === '') {
+    if (val === '') {
+      document.getElementById('f_realtor_name').value = '';
+      document.getElementById('f_realtor_phone').value = '';
+    }
+    return;
+  }
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('f_realtor_name').value = opt.dataset.name || '';
+  document.getElementById('f_realtor_phone').value = opt.dataset.phone || '';
+}
+
+async function saveInlineRealtor() {
+  const firstLast = document.getElementById('ir_name').value.trim();
+  const company = document.getElementById('ir_company').value.trim();
+  const phone = document.getElementById('ir_phone').value.trim();
+  const email = document.getElementById('ir_email').value.trim();
+  if (!firstLast) { showToast("Enter the realtor's name."); return; }
+
+  const parts = firstLast.split(' ');
+  const payload = {
+    category: 'realtor',
+    first_name: parts[0] || null,
+    last_name: parts.slice(1).join(' ') || null,
+    company_name: company || null,
+    phone: phone || null,
+    email: email || null,
+    brokerage_id: myProfile?.brokerage_id || null,
+    created_by: currentUserId,
+  };
+
+  try {
+    const { data, error } = await supabase.from('contacts').insert(payload).select().single();
+    if (error) throw error;
+    showToast('Realtor saved to Business Contacts');
+    contacts.push(data);
+    const label = `${contactDisplayName(data)}${data.company_name ? ` (${data.company_name})` : ''}`;
+    populateRealtorSelect(label);
+    document.getElementById('f_realtor_name').value = label;
+    document.getElementById('f_realtor_phone').value = data.phone || '';
+    ['ir_name','ir_company','ir_phone','ir_email'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('inlineAddRealtorWrap').style.display = 'none';
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
 function loName(userId) {
   if (!userId) return '';
   const p = brokerageProfiles.find(x => x.id === userId);
@@ -1789,6 +2236,138 @@ async function renderOps() {
     <div class="section-label">Brokerage Health</div>
     ${rows}
   `;
+}
+
+async function openLetterModal(leadId) {
+  letterLeadId = leadId;
+  const l = leads.find(x => x.id === leadId);
+  letterChecklist = { credit: true, income: true, assets: true, aus: true };
+  document.querySelectorAll('#lt_checklist .tag-option').forEach(el => el.classList.add('selected'));
+
+  document.getElementById('lt_purchase_price').value = '';
+  document.getElementById('lt_loan_amount').value = l?.loan_amount || '';
+  document.getElementById('lt_loan_type').value = l?.loan_type || '';
+  document.getElementById('lt_address').value = '';
+  document.getElementById('lt_nmls').value = myProfile?.nmls_number || '';
+
+  if (!myBrokerageRecord && myProfile?.brokerage_id) {
+    const { data } = await supabase.from('brokerages').select('*').eq('id', myProfile.brokerage_id).single();
+    myBrokerageRecord = data || null;
+  }
+
+  const warnEl = document.getElementById('letterWarnings');
+  const warnings = [];
+  warnings.push(`<div class="letter-demo-banner">Demo preview — not a compliance-approved send</div>`);
+  if (!myProfile?.nmls_number) warnings.push(`<div class="letter-warning">Your NMLS number isn't saved to your profile yet — entered below for this letter only.</div>`);
+  if (!myBrokerageRecord?.logo_url) warnings.push(`<div class="letter-warning">No brokerage logo/branding on file yet — letter will render with placeholder branding.</div>`);
+  warnings.push(`<div class="letter-warning">No compliance-approved letter template is loaded yet. This preview uses standard placeholder disclaimer language — get Jorge's/the brokerage's approved wording before sending anything to a real borrower or realtor.</div>`);
+  warnEl.innerHTML = warnings.join('');
+
+  renderLetterPreview();
+  document.getElementById('letterModalOverlay').classList.add('open');
+}
+
+function closeLetterModal() {
+  document.getElementById('letterModalOverlay').classList.remove('open');
+  letterLeadId = null;
+}
+
+function toggleLetterCheck(key) {
+  letterChecklist[key] = !letterChecklist[key];
+  document.querySelector(`#lt_checklist [data-check="${key}"]`).classList.toggle('selected', letterChecklist[key]);
+  renderLetterPreview();
+}
+
+function renderLetterPreview() {
+  const l = leads.find(x => x.id === letterLeadId);
+  if (!l) return;
+
+  const purchasePrice = parseFloat(document.getElementById('lt_purchase_price').value) || 0;
+  const loanAmount = parseFloat(document.getElementById('lt_loan_amount').value) || 0;
+  const ltv = purchasePrice > 0 ? ((loanAmount / purchasePrice) * 100).toFixed(2) + '%' : '—';
+  const loanTerm = document.getElementById('lt_loan_term').value;
+  const loanLimitType = document.getElementById('lt_loan_limit_type').value;
+  const loanType = document.getElementById('lt_loan_type').value || '—';
+  const occupancy = document.getElementById('lt_occupancy').value;
+  const address = document.getElementById('lt_address').value || 'TBD';
+  const nmls = document.getElementById('lt_nmls').value || 'Not on file';
+
+  const issueDate = new Date();
+  const expires = new Date(issueDate);
+  expires.setDate(expires.getDate() + 90);
+  const fmt = d => d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+
+  const brokerName = myBrokerageRecord?.name || myBrokerageName || 'Optimized Hub Media LLC';
+  const brokerNmls = myBrokerageRecord?.company_nmls || '—';
+  const logoUrl = myBrokerageRecord?.logo_url || '';
+  const loFullName = myProfile?.full_name || 'Loan Officer';
+  const loEmail = myProfile?.email || '';
+
+  const checkIcon = on => on ? '✅' : '⬜';
+
+  document.getElementById('letterPreview').innerHTML = `
+    <div class="letter-head">
+      ${logoUrl ? `<img src="${logoUrl}" alt="${escapeHtml(brokerName)}">` : ''}
+      <div class="lh-name">${escapeHtml(brokerName)}</div>
+      <div class="lh-nmls">NMLS # ${escapeHtml(brokerNmls)}</div>
+    </div>
+    <h3>PRE-APPROVAL LETTER</h3>
+    <div class="letter-meta-grid">
+      <div><span class="lbl">Borrower(s):</span> ${l.first_name || ''} ${l.last_name || ''}</div>
+      <div><span class="lbl">Issue Date:</span> ${fmt(issueDate)}</div>
+      <div><span class="lbl">Address:</span> ${escapeHtml(address)}</div>
+      <div><span class="lbl">Expires On:</span> ${fmt(expires)}</div>
+      <div><span class="lbl">Occupancy:</span> ${occupancy}</div>
+      <div><span class="lbl">Loan Number:</span> ${l.id.slice(0, 8).toUpperCase()}</div>
+    </div>
+    <p><b>Congratulations!</b> Based on the information and documentation provided, you have been pre-approved for the loan terms below, subject to final underwriting approval, clear and marketable title, homeowner's insurance, appraisal review, and no material change in your financial condition prior to closing.</p>
+    <div class="letter-terms">
+      <div><span class="lbl">Purchase Price</span><br><span class="big">${purchasePrice ? fmtCurrency(purchasePrice) : '—'}</span></div>
+      <div><span class="lbl">Loan Amount</span><br><span class="big">${loanAmount ? fmtCurrency(loanAmount) : '—'}</span></div>
+      <div><span class="lbl">Loan-to-Value:</span> ${ltv}</div>
+      <div><span class="letter-check">${checkIcon(letterChecklist.credit)} Credit Reviewed</span></div>
+      <div><span class="lbl">Loan Term:</span> ${loanTerm}</div>
+      <div><span class="letter-check">${checkIcon(letterChecklist.income)} Income Documented</span></div>
+      <div><span class="lbl">Loan Type:</span> ${escapeHtml(loanType)}</div>
+      <div><span class="letter-check">${checkIcon(letterChecklist.assets)} Assets Verified</span></div>
+      <div><span class="lbl">Loan Limit Type:</span> ${loanLimitType}</div>
+      <div><span class="letter-check">${checkIcon(letterChecklist.aus)} AUS Approval</span></div>
+    </div>
+    <div class="letter-disclaimer">
+      This pre-approval is valid for 90 days from the issue date above and does not constitute a loan commitment. A final commitment remains subject to complete underwriting approval, including a satisfactory appraisal and clear title. Interest rates and terms are subject to change without notice.
+      <br><br><i>Placeholder disclaimer — replace with your brokerage's compliance-approved wording before any real send.</i>
+    </div>
+    <div class="letter-sig">
+      Sincerely,<br><br>
+      <b>${escapeHtml(loFullName)}</b><br>
+      NMLS: ${escapeHtml(nmls)}<br>
+      ${loEmail ? `Email: ${escapeHtml(loEmail)}` : ''}
+    </div>
+  `;
+}
+
+function printLetter() {
+  const content = document.getElementById('letterPreview').innerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Pre-Approval Letter (Demo)</title>
+    <style>
+      body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; padding: 40px; max-width: 680px; margin: 0 auto; }
+      h3 { font-family: -apple-system, sans-serif; text-align: center; font-size: 17px; letter-spacing: 0.04em; }
+      .letter-head { display:flex; flex-direction:column; align-items:center; margin-bottom:4px; }
+      .letter-head img { height: 44px; object-fit: contain; margin-bottom: 4px; }
+      .letter-head .lh-name { font-family: -apple-system, sans-serif; font-weight: 800; font-size: 18px; }
+      .letter-head .lh-nmls { font-size: 11px; color: #555; }
+      .letter-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 18px; margin:16px 0; font-size:12.5px; }
+      .letter-terms { display:grid; grid-template-columns:1fr 1fr; gap:4px 18px; margin:16px 0; font-size:12.5px; }
+      .letter-terms .big { font-size:18px; font-weight:800; font-family:-apple-system, sans-serif; }
+      .letter-disclaimer { font-size:11px; color:#444; margin:16px 0; line-height:1.6; }
+      .letter-sig { margin-top:20px; font-size:12.5px; }
+      .lbl { color:#666; }
+    </style></head><body>${content}</body></html>
+  `);
+  w.document.close();
+  w.print();
 }
 
 function renderList() {
@@ -2108,6 +2687,7 @@ function openNewLead() {
   renderTagPicker();
   renderSourcePicker('Client Referral');
   renderActivityLog();
+  populateRealtorSelect('');
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -2191,6 +2771,7 @@ function openLead(id) {
   renderSourcePicker(knownSource);
   if (knownSource === 'Other') document.getElementById('f_source_other').value = l.source || '';
   renderActivityLog();
+  populateRealtorSelect(l.realtor_name || '');
 
   document.getElementById('partnerUpdatesSection').style.display = 'block';
   loadPartnerUpdates(id);
