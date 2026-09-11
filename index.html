@@ -27,13 +27,15 @@
     --success: #16A34A;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-x: hidden; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
     background: var(--pearl);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
-  .app { max-width: 1100px; margin: 0 auto; min-height: 100vh; background: var(--white); box-shadow: 0 0 40px rgba(0,0,0,0.03); }
+  .app { max-width: 1100px; margin: 0 auto; min-height: 100vh; background: var(--white); box-shadow: 0 0 40px rgba(0,0,0,0.03); overflow-x: hidden; }
 
   .auth-screen {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -55,15 +57,15 @@
   .auth-error.show { display: block; }
   .auth-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.5; }
 
-  header { background: var(--ink); color: var(--white); padding: 20px 20px; position: sticky; top: 0; z-index: 20; }
-  header .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-  header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  header { background: var(--ink); color: var(--white); padding: 16px 16px; position: sticky; top: 0; z-index: 20; }
+  header .top-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; flex-shrink: 0; }
   header h1 span { color: var(--copper-light); }
-  .header-actions { display: flex; gap: 8px; align-items: center; }
-  .add-btn { background: var(--cobalt); color: white; border: none; border-radius: 8px; padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .logout-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; cursor: pointer; }
+  .header-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .add-btn { background: var(--cobalt); color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .logout-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: none; border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .search-row { display: flex; gap: 8px; }
-  .search-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 14px; }
+  .search-input { flex: 1; min-width: 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 14px; }
   .search-input::placeholder { color: rgba(255,255,255,0.5); }
 
   .view-toggle { display: flex; gap: 6px; padding: 12px 20px 0; background: var(--white); flex-wrap: wrap; border-bottom: 1px solid var(--border); }
@@ -180,6 +182,7 @@
   .lo-card-count { text-align: right; }
 
   .tasks-wrap { padding: 20px; padding-bottom: 100px; }
+  .refi-wrap { padding: 20px; padding-bottom: 100px; }
 
   .calendar-wrap { padding: 16px 20px 100px; }
   .cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 14px; }
@@ -265,8 +268,8 @@
   .field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
   .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: inherit; color: var(--ink); background: white; }
   .field textarea { resize: vertical; min-height: 70px; }
-  .field-row { display: flex; gap: 12px; }
-  .field-row .field { flex: 1; }
+  .field-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .field-row .field { flex: 1; min-width: 140px; }
   .field-checkbox-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
   .field-checkbox-row input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; }
   .field-checkbox-row label { margin: 0; text-transform: none; font-size: 14px; font-weight: 600; color: var(--ink); }
@@ -311,7 +314,7 @@
   .btn-danger { background: white; color: var(--danger); border: 1.5px solid #FCA5A5; flex: 0 0 auto; padding: 13px 18px; }
   .btn:disabled { opacity: 0.5; }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--ink); color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; max-width: calc(100vw - 32px); text-align: center; }
   .toast.show { opacity: 1; }
 
   .dr-wrap { padding: 20px; padding-bottom: 100px; max-width: 640px; margin: 0 auto; }
@@ -361,6 +364,14 @@
   .letter-sig { margin-top: 20px; font-size: 12.5px; }
   .letter-disclaimer { font-size: 11px; color: #444; margin: 16px 0; line-height: 1.6; }
 
+  @media (max-width: 480px) {
+    header { padding: 12px 12px; }
+    header h1 { font-size: 16px; }
+    .add-btn { padding: 7px 10px; font-size: 12px; }
+    .logout-btn { padding: 7px 8px; font-size: 11px; }
+    .header-actions { gap: 5px; }
+  }
+
   @media (min-width: 640px) {
     .modal-overlay { align-items: center; }
     .modal { border-radius: 16px; max-height: 88vh; margin: 20px; }
@@ -393,7 +404,7 @@
 <div class="app" id="mainApp" style="display:none">
   <header>
     <div class="top-row">
-      <h1 style="display:flex;align-items:center;gap:10px;"><span style="width:38px;height:38px;border-radius:9px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0B1220;"><img src="https://optimizedhubllc-prog.github.io/optimized-hub-assets/OH_Logo_Dark%20%282%29.png" alt="Optimized Hub" style="width:150%;height:150%;object-fit:cover;display:block;"></span>Hub <span>CRM</span></h1>
+      <h1 style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:9px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#0B1220;"><img src="https://optimizedhubllc-prog.github.io/optimized-hub-assets/OH_Logo_Dark%20%282%29.png" alt="Optimized Hub" style="width:150%;height:150%;object-fit:cover;display:block;"></span>Hub <span>CRM</span></h1>
       <div class="header-actions">
         <button class="add-btn" id="inviteBtn" style="display:none;background:rgba(255,255,255,0.12)" onclick="openInviteModal()">Invite</button>
         <button class="add-btn" id="importBtn" style="background:rgba(255,255,255,0.12)" onclick="openImport()">Import</button>
@@ -410,6 +421,7 @@
     <button class="view-toggle-btn" id="viewToggleToday" onclick="setView('today')">Today</button>
     <button class="view-toggle-btn" id="viewToggleList" onclick="setView('list')">Pipeline</button>
     <button class="view-toggle-btn" id="viewToggleTasks" onclick="setView('tasks')">Tasks</button>
+    <button class="view-toggle-btn" id="viewToggleRefi" onclick="setView('refi')">Refi Alerts</button>
     <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
     <button class="view-toggle-btn" id="viewToggleContacts" onclick="setView('contacts')">Contacts</button>
     <button class="view-toggle-btn" id="viewToggleTeam" onclick="setView('team')" style="display:none">Brokerage</button>
@@ -431,6 +443,8 @@
     </div>
     <div id="tasksSections"></div>
   </div>
+
+  <div class="refi-wrap" id="refiWrap" style="display:none"></div>
 
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
   <div class="team-wrap" id="contactsWrap" style="display:none"></div>
@@ -1072,6 +1086,7 @@ function contactAgeLabel(l) {
   if (days === 1) return 'Contacted yesterday';
   return `${days}d since contact`;
 }
+function isRefiTask(t) { return (t.title || '').startsWith('Rate opportunity:'); }
 
 const TARGET_FIELDS = [
   { key: 'first_name', label: 'First name', required: true },
@@ -1330,6 +1345,7 @@ function applyDrOnlyLayout() {
   document.getElementById('tabs').style.display = 'none';
   document.getElementById('list').style.display = 'none';
   document.getElementById('tasksWrap').style.display = 'none';
+  document.getElementById('refiWrap').style.display = 'none';
   document.getElementById('calendarWrap').style.display = 'none';
   document.getElementById('contactsWrap').style.display = 'none';
   document.getElementById('teamWrap').style.display = 'none';
@@ -1555,6 +1571,7 @@ function setView(v) {
   document.getElementById('viewToggleToday').classList.toggle('active', v === 'today');
   document.getElementById('viewToggleList').classList.toggle('active', v === 'list');
   document.getElementById('viewToggleTasks').classList.toggle('active', v === 'tasks');
+  document.getElementById('viewToggleRefi').classList.toggle('active', v === 'refi');
   document.getElementById('viewToggleCalendar').classList.toggle('active', v === 'calendar');
   document.getElementById('viewToggleContacts').classList.toggle('active', v === 'contacts');
   document.getElementById('viewToggleTeam').classList.toggle('active', v === 'team');
@@ -1563,6 +1580,7 @@ function setView(v) {
   document.getElementById('tabs').style.display = v === 'list' ? 'flex' : 'none';
   document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
   document.getElementById('tasksWrap').style.display = v === 'tasks' ? 'block' : 'none';
+  document.getElementById('refiWrap').style.display = v === 'refi' ? 'block' : 'none';
   document.getElementById('calendarWrap').style.display = v === 'calendar' ? 'block' : 'none';
   document.getElementById('contactsWrap').style.display = v === 'contacts' ? 'block' : 'none';
   document.getElementById('teamWrap').style.display = v === 'team' ? 'block' : 'none';
@@ -1570,6 +1588,7 @@ function setView(v) {
   renderBrokerFilterBanner();
   if (v === 'today') renderToday();
   if (v === 'tasks') renderTasks();
+  if (v === 'refi') renderRefi();
   if (v === 'calendar') renderCalendar();
   if (v === 'contacts') renderContacts();
   if (v === 'team') renderTeam();
@@ -1687,8 +1706,8 @@ function leadNameById(id) {
 function renderTasks() {
   const wrap = document.getElementById('tasksSections');
   const now = new Date();
-  const active = tasks.filter(t => t.status !== 'completed');
-  const completed = tasks.filter(t => t.status === 'completed').slice(0, 15);
+  const active = tasks.filter(t => t.status !== 'completed' && !isRefiTask(t));
+  const completed = tasks.filter(t => t.status === 'completed' && !isRefiTask(t)).slice(0, 15);
 
   const overdue = active.filter(t => new Date(t.due_at) < now && t.status !== 'reschedule_requested');
   const needsResched = active.filter(t => t.status === 'reschedule_requested');
@@ -1728,6 +1747,47 @@ function renderTasks() {
     ${section('Due Today', 'due', dueToday)}
     ${section('Upcoming Action Items', 'upcoming', upcoming)}
     ${section('Completed', 'done', completed)}
+  `;
+}
+
+function renderRefi() {
+  const wrap = document.getElementById('refiWrap');
+  const refiTasks = tasks.filter(isRefiTask);
+  const active = refiTasks.filter(t => t.status !== 'completed');
+  const handled = refiTasks.filter(t => t.status === 'completed').slice(0, 15);
+
+  const card = t => `
+    <div class="today-card" onclick="openTask('${t.id}')">
+      <div class="today-card-dot ${t.status === 'completed' ? 'done' : 'lock'}"></div>
+      <div class="today-card-info">
+        <div class="today-card-name">${leadNameById(t.lead_id) || 'Unlinked file'}</div>
+        <div class="today-card-detail">${t.title.replace(/^Rate opportunity:\s*/, '')}</div>
+      </div>
+      <span class="status-badge status-${slugify(t.status)}">${t.status.replace(/_/g, ' ')}</span>
+    </div>
+  `;
+
+  wrap.innerHTML = `
+    <div class="team-header">
+      <div>
+        <h2>Refi Opportunities</h2>
+        <p>Funded clients whose locked rate now sits well above the market — surfaced automatically from the weekly rate scan.</p>
+      </div>
+    </div>
+    <div class="today-section">
+      <div class="today-section-title">Active Opportunities <span class="today-section-count">${active.length}</span></div>
+      ${active.length === 0
+        ? `<div class="today-empty">No open refi opportunities right now.</div>`
+        : active.map(card).join('')
+      }
+    </div>
+    <div class="today-section">
+      <div class="today-section-title">Handled <span class="today-section-count">${handled.length}</span></div>
+      ${handled.length === 0
+        ? `<div class="today-empty">Nothing marked handled yet.</div>`
+        : handled.map(card).join('')
+      }
+    </div>
   `;
 }
 
@@ -1856,6 +1916,7 @@ async function loadTasks() {
   if (error) { console.error(error); tasks = []; return; }
   tasks = data || [];
   if (currentView === 'tasks') renderTasks();
+  if (currentView === 'refi') renderRefi();
 }
 
 async function loadContacts() {
