@@ -348,6 +348,17 @@
   .pu-err { font-size: 12px; color: var(--danger); margin-top: 6px; line-height: 1.4; }
   .pu-hint { font-size: 12px; color: var(--cobalt); font-weight: 600; margin-top: 6px; line-height: 1.4; }
 
+  .doc-req-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: white; }
+  .doc-req-entry.received { background: var(--pearl); }
+  .doc-req-info { flex: 1; min-width: 0; }
+  .doc-req-type { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .doc-req-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .doc-req-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .doc-req-actions button { padding: 6px 11px; border-radius: 7px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); background: white; color: var(--muted); cursor: pointer; }
+  .doc-req-actions button.primary { border-color: var(--success); color: var(--success); }
+  .doc-req-add { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1.5px dashed var(--border); border-radius: 10px; }
+  .doc-req-add select, .doc-req-add input { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+
   .modal-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: white; }
   .btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
   .btn-primary { background: var(--cobalt); color: white; }
@@ -646,6 +657,13 @@
         <div class="section-label">Partner Updates</div>
         <div class="section-hint">Sent automatically to the referral partner each time this file changes stage.</div>
         <div class="pu-log" id="partnerUpdates"></div>
+      </div>
+
+      <div id="documentsSection" style="display:none">
+        <div class="section-label">Requested Documents</div>
+        <div class="section-hint">Track what's been asked for on this file. Automated reminders go out to the borrower until it's marked received.</div>
+        <div id="documentsList"></div>
+        <div id="documentAddWrap"></div>
       </div>
 
       <div class="section-label">Follow-up Log</div>
@@ -1006,6 +1024,11 @@ let letterLeadId = null;
 let letterChecklist = { credit: true, income: true, assets: true, aus: true };
 let myBrokerageRecord = null;
 
+const DOC_TYPES = ['Pay Stubs', 'Bank Statements', 'Tax Returns', 'W-2s', 'Photo ID', 'Homeowners Insurance', 'Gift Letter', 'Other'];
+let currentDocs = [];
+let docAddFormOpen = false;
+let docLeadId = null;
+
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
   if (el && document.getElementById('authScreen').style.display !== 'none') {
@@ -1079,6 +1102,10 @@ window.closeLetterModal = closeLetterModal;
 window.renderLetterPreview = renderLetterPreview;
 window.toggleLetterCheck = toggleLetterCheck;
 window.printLetter = printLetter;
+window.openDocAddForm = openDocAddForm;
+window.closeDocAddForm = closeDocAddForm;
+window.saveDocRequest = saveDocRequest;
+window.markDocStatus = markDocStatus;
 
 function slugify(s) { return (s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
 function escapeHtml(s) {
@@ -1606,6 +1633,127 @@ async function loadPartnerUpdates(leadId) {
     return;
   }
   wrap.innerHTML = evs.map(renderPartnerUpdate).join('');
+}
+
+const DOC_STATUS_META = {
+  requested: { label: 'Requested', badge: 'warn' },
+  received:  { label: 'Received',  badge: 'ok' },
+  waived:    { label: 'Waived',    badge: 'neutral' },
+};
+
+function renderDocEntry(d) {
+  const meta = DOC_STATUS_META[d.status] || { label: d.status, badge: 'neutral' };
+  const reminderNote = d.status === 'requested' && d.reminder_count > 0
+    ? ` · ${d.reminder_count} reminder${d.reminder_count === 1 ? '' : 's'} sent`
+    : '';
+  const escalatedNote = d.escalated ? ' · flagged for manual follow-up' : '';
+  return `
+    <div class="doc-req-entry ${d.status === 'received' ? 'received' : ''}">
+      <div class="doc-req-info">
+        <div class="doc-req-type">${escapeHtml(d.doc_type)}</div>
+        <div class="doc-req-meta">
+          <span class="pu-badge ${meta.badge}">${meta.label}</span>
+          Requested ${fmtDate(d.requested_at ? d.requested_at.slice(0, 10) : '')}${reminderNote}${escalatedNote}
+        </div>
+      </div>
+      ${d.status === 'requested' ? `
+        <div class="doc-req-actions">
+          <button type="button" class="primary" onclick="markDocStatus('${d.id}','received')">Mark Received</button>
+          <button type="button" onclick="markDocStatus('${d.id}','waived')">Waive</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderDocAddForm() {
+  const wrap = document.getElementById('documentAddWrap');
+  if (!docAddFormOpen) {
+    wrap.innerHTML = `<button class="cal-add-btn" onclick="openDocAddForm()">+ Request Document</button>`;
+    return;
+  }
+  const options = DOC_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+  wrap.innerHTML = `
+    <div class="doc-req-add">
+      <select id="docReqType">${options}</select>
+      <input id="docReqTypeOther" placeholder="Specify document" style="display:none">
+      <input id="docReqNotes" placeholder="Notes for this request (optional)">
+      <div class="cal-add-form-actions">
+        <button class="cal-cancel-btn" onclick="closeDocAddForm()">Cancel</button>
+        <button class="cal-save-btn" onclick="saveDocRequest()">Request Document</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('docReqType').onchange = (e) => {
+    document.getElementById('docReqTypeOther').style.display = e.target.value === 'Other' ? 'block' : 'none';
+  };
+}
+
+function openDocAddForm() { docAddFormOpen = true; renderDocAddForm(); }
+function closeDocAddForm() { docAddFormOpen = false; renderDocAddForm(); }
+
+async function loadDocuments(leadId) {
+  docLeadId = leadId;
+  docAddFormOpen = false;
+  const listWrap = document.getElementById('documentsList');
+  listWrap.innerHTML = `<div class="activity-empty">Loading requested documents...</div>`;
+
+  const { data, error } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('lead_id', leadId)
+    .order('requested_at', { ascending: false });
+
+  if (error) {
+    listWrap.innerHTML = `<div class="activity-empty">Documents unavailable: ${escapeHtml(error.message)}</div>`;
+    currentDocs = [];
+  } else {
+    currentDocs = data || [];
+    listWrap.innerHTML = currentDocs.length
+      ? currentDocs.map(renderDocEntry).join('')
+      : `<div class="activity-empty">No documents requested yet.</div>`;
+  }
+  renderDocAddForm();
+}
+
+async function saveDocRequest() {
+  const typeSel = document.getElementById('docReqType').value;
+  const typeOther = document.getElementById('docReqTypeOther').value.trim();
+  const docType = typeSel === 'Other' ? (typeOther || 'Other') : typeSel;
+  const notes = document.getElementById('docReqNotes').value.trim() || null;
+  if (!docLeadId) return;
+
+  const lead = leads.find(l => l.id === docLeadId);
+  const payload = {
+    lead_id: docLeadId,
+    doc_type: docType,
+    status: 'requested',
+    notes,
+    brokerage_id: myProfile?.brokerage_id || null,
+    owner_lo: lead?.created_by || currentUserId,
+  };
+
+  try {
+    const { error } = await supabase.from('documents').insert(payload);
+    if (error) throw error;
+    showToast('Document requested');
+    await loadDocuments(docLeadId);
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+async function markDocStatus(id, status) {
+  try {
+    const patch = { status };
+    if (status === 'received') patch.received_at = new Date().toISOString();
+    const { error } = await supabase.from('documents').update(patch).eq('id', id);
+    if (error) throw error;
+    showToast(status === 'received' ? 'Marked received' : 'Marked waived');
+    if (docLeadId) await loadDocuments(docLeadId);
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
 }
 
 function renderTabs() {
@@ -2980,6 +3128,7 @@ function openNewLead() {
   document.getElementById('activityAddWrap').style.display = 'flex';
   document.getElementById('reassignPanel').style.display = 'none';
   document.getElementById('partnerUpdatesSection').style.display = 'none';
+  document.getElementById('documentsSection').style.display = 'none';
   document.getElementById('quickActionRow').innerHTML = '';
   document.getElementById('leadCard').classList.remove('show');
   document.getElementById('duplicateWarning').classList.remove('show');
@@ -3082,6 +3231,9 @@ function openLead(id) {
 
   document.getElementById('partnerUpdatesSection').style.display = 'block';
   loadPartnerUpdates(id);
+
+  document.getElementById('documentsSection').style.display = 'block';
+  loadDocuments(id);
 
   document.getElementById('modalOverlay').classList.add('open');
 }
