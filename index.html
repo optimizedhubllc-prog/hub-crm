@@ -223,6 +223,9 @@
   .cal-event-tag.task { background: #E2E8F0; color: #334155; }
   .cal-add-btn { background: none; border: 1.5px dashed var(--border); color: var(--cobalt); font-size: 13px; font-weight: 700; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; margin-top: 6px; }
   .cal-add-form { border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .cal-add-type-toggle { display: flex; gap: 6px; margin-bottom: 2px; }
+  .cal-add-type-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .cal-add-type-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
   .cal-add-form select, .cal-add-form input { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
   .cal-add-form-actions { display: flex; gap: 8px; }
   .cal-add-form-actions button { flex: 1; padding: 9px; border-radius: 8px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; }
@@ -751,7 +754,7 @@
       </div>
       <div class="field" id="inv_existing_brokerage_wrap" style="display:none">
         <label>Brokerage</label>
-        <select id="inv_brokerage_id"></select>
+        <select id="inv_brokerage_id" onchange="handleInviteBrokerageSelect()"></select>
       </div>
       <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px">An email invite is sent immediately with a secure link to set a password.</p>
     </div>
@@ -937,6 +940,7 @@ let editingActivityLog = [];
 let editingTags = [];
 let originalStatus = null;
 let calAddFormOpen = false;
+let calAddMode = 'followup';
 let myProfile = null;
 let brokerageProfiles = [];
 let brokerFilterUserId = null;
@@ -1002,6 +1006,8 @@ window.checkDuplicate = checkDuplicate;
 window.openCalAddForm = openCalAddForm;
 window.closeCalAddForm = closeCalAddForm;
 window.saveCalAddForm = saveCalAddForm;
+window.setCalAddMode = setCalAddMode;
+window.saveCalAddTask = saveCalAddTask;
 window.filterByLO = filterByLO;
 window.clearBrokerFilter = clearBrokerFilter;
 window.exportTeamCSV = exportTeamCSV;
@@ -1018,6 +1024,7 @@ window.sendAgentMessage = sendAgentMessage;
 window.openInviteModal = openInviteModal;
 window.closeInviteModal = closeInviteModal;
 window.selectInviteRole = selectInviteRole;
+window.handleInviteBrokerageSelect = handleInviteBrokerageSelect;
 window.submitInvite = submitInvite;
 window.openNewContact = openNewContact;
 window.openContact = openContact;
@@ -2515,8 +2522,9 @@ function selectCalDay(dateStr) {
   renderCalendar();
 }
 
-function openCalAddForm() { calAddFormOpen = true; renderCalendar(); }
+function openCalAddForm() { calAddMode = 'followup'; calAddFormOpen = true; renderCalendar(); }
 function closeCalAddForm() { calAddFormOpen = false; renderCalendar(); }
+function setCalAddMode(mode) { calAddMode = mode; renderCalendar(); }
 
 async function saveCalAddForm() {
   const leadId = document.getElementById('calAddLeadSelect').value;
@@ -2539,6 +2547,37 @@ async function saveCalAddForm() {
     showToast('Follow-up logged');
     calAddFormOpen = false;
     await loadLeads();
+    renderCalendar();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+
+async function saveCalAddTask() {
+  const title = document.getElementById('calAddTaskTitle').value.trim();
+  if (!title) { showToast('Enter task description.'); return; }
+  const leadId = document.getElementById('calAddTaskLead').value || null;
+  const assignedTo = document.getElementById('calAddTaskAssignee').value || currentUserId;
+  const dueAt = new Date(`${selectedCalDay}T09:00:00`).toISOString();
+
+  const payload = {
+    title,
+    due_at: dueAt,
+    assigned_to: assignedTo,
+    lead_id: leadId,
+    high_value: false,
+    brokerage_id: myProfile?.brokerage_id || null,
+    status: 'pending',
+    reminder_sent: false,
+    escalation_sent: false,
+  };
+
+  try {
+    const { error } = await supabase.from('tasks').insert(payload);
+    if (error) throw error;
+    showToast('Task scheduled');
+    calAddFormOpen = false;
+    await loadTasks();
     renderCalendar();
   } catch (err) {
     showToast('Error: ' + err.message);
@@ -2597,17 +2636,37 @@ function renderCalendar() {
             </div>
           </div>
         `).join('');
+        const taskLeadOptions = ['<option value="">— Unlinked Task —</option>']
+          .concat(leads.map(l => `<option value="${l.id}">${l.first_name || ''} ${l.last_name || ''}</option>`)).join('');
+        const assigneePool = brokerageProfiles.length ? brokerageProfiles : (myProfile ? [myProfile] : []);
+        const taskAssigneeOptions = assigneePool.length
+          ? assigneePool.map(p => `<option value="${p.id}" ${p.id === currentUserId ? 'selected' : ''}>${p.full_name || p.email}</option>`).join('')
+          : `<option value="${currentUserId || ''}">${myProfile?.full_name || myProfile?.email || 'Me'}</option>`;
         const addBlock = !isSelected ? '' : (calAddFormOpen ? `
           <div class="cal-add-form">
-            <select id="calAddLeadSelect">${leadOptions}</select>
-            <input id="calAddNote" placeholder="Follow-up details...">
-            <input id="calAddNextStep" placeholder="Next operational step (optional)">
-            <div class="cal-add-form-actions">
-              <button class="cal-cancel-btn" onclick="closeCalAddForm()">Cancel</button>
-              <button class="cal-save-btn" onclick="saveCalAddForm()">Save Follow-Up</button>
+            <div class="cal-add-type-toggle">
+              <button type="button" class="cal-add-type-btn ${calAddMode === 'followup' ? 'active' : ''}" onclick="setCalAddMode('followup')">Follow-Up</button>
+              <button type="button" class="cal-add-type-btn ${calAddMode === 'task' ? 'active' : ''}" onclick="setCalAddMode('task')">Task</button>
             </div>
+            ${calAddMode === 'followup' ? `
+              <select id="calAddLeadSelect">${leadOptions}</select>
+              <input id="calAddNote" placeholder="Follow-up details...">
+              <input id="calAddNextStep" placeholder="Next operational step (optional)">
+              <div class="cal-add-form-actions">
+                <button class="cal-cancel-btn" onclick="closeCalAddForm()">Cancel</button>
+                <button class="cal-save-btn" onclick="saveCalAddForm()">Save Follow-Up</button>
+              </div>
+            ` : `
+              <input id="calAddTaskTitle" placeholder="Task description...">
+              <select id="calAddTaskLead">${taskLeadOptions}</select>
+              <select id="calAddTaskAssignee">${taskAssigneeOptions}</select>
+              <div class="cal-add-form-actions">
+                <button class="cal-cancel-btn" onclick="closeCalAddForm()">Cancel</button>
+                <button class="cal-save-btn" onclick="saveCalAddTask()">Save Task</button>
+              </div>
+            `}
           </div>
-        ` : `<button class="cal-add-btn" onclick="openCalAddForm()">+ Add Follow-Up for this Day</button>`);
+        ` : `<button class="cal-add-btn" onclick="openCalAddForm()">+ Add Follow-Up or Task for this Day</button>`);
         return `
           <div class="cal-agenda-day ${isSelected ? 'selected' : ''}">
             <h4 onclick="selectCalDay('${dateStr}')">${fmtDateLong(dateStr)}</h4>
@@ -2944,17 +3003,23 @@ async function updateInviteRoleFields() {
     newWrap.style.display = 'block';
     existingWrap.style.display = 'none';
   } else {
-    newWrap.style.display = 'none';
     existingWrap.style.display = 'block';
     if (!inviteBrokerages.length) {
       const { data, error } = await supabase.from('brokerages').select('id,name').order('name');
       if (!error) inviteBrokerages = data || [];
     }
     const sel = document.getElementById('inv_brokerage_id');
-    sel.innerHTML = inviteBrokerages.length
-      ? inviteBrokerages.map(b => `<option value="${b.id}">${b.name}</option>`).join('')
-      : '<option value="">No brokerages found</option>';
+    const options = inviteBrokerages.map(b => `<option value="${b.id}">${b.name}</option>`);
+    options.push('<option value="__new__">+ Add New Brokerage</option>');
+    sel.innerHTML = options.join('');
+    handleInviteBrokerageSelect();
   }
+}
+
+function handleInviteBrokerageSelect() {
+  const sel = document.getElementById('inv_brokerage_id');
+  const newWrap = document.getElementById('inv_new_brokerage_wrap');
+  newWrap.style.display = sel.value === '__new__' ? 'block' : 'none';
 }
 
 function closeInviteModal() { document.getElementById('inviteModalOverlay').classList.remove('open'); }
@@ -2978,9 +3043,15 @@ async function submitInvite() {
       if (!brokerageName) { showToast('Brokerage name is required.'); return; }
       payload.brokerage_name = brokerageName;
     } else {
-      const brokerageId = document.getElementById('inv_brokerage_id').value;
-      if (!brokerageId) { showToast('Select a brokerage.'); return; }
-      payload.brokerage_id = brokerageId;
+      const brokerageSel = document.getElementById('inv_brokerage_id').value;
+      if (!brokerageSel) { showToast('Select a brokerage.'); return; }
+      if (brokerageSel === '__new__') {
+        const newBrokerageName = document.getElementById('inv_brokerage_name').value.trim();
+        if (!newBrokerageName) { showToast('Enter the new brokerage name.'); return; }
+        payload.brokerage_name = newBrokerageName;
+      } else {
+        payload.brokerage_id = brokerageSel;
+      }
     }
   }
 
