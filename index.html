@@ -210,6 +210,11 @@
   .cal-legend .cal-dot { width: 8px; height: 8px; }
   .cal-day-panel { margin-top: 16px; }
   .cal-day-panel h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .cal-agenda { margin-top: 18px; }
+  .cal-agenda-header { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px; }
+  .cal-agenda-day { margin-bottom: 18px; }
+  .cal-agenda-day h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--ink); cursor: pointer; }
+  .cal-agenda-day.selected h4 { color: var(--cobalt); }
   .cal-event-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; background: white; }
   .cal-event-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; flex-shrink: 0; }
   .cal-event-tag.followup { background: #DBEAFE; color: #1D4ED8; }
@@ -2567,27 +2572,32 @@ function renderCalendar() {
   }
 
   const dowLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  let panelHTML = '';
-  if (selectedCalDay) {
-    const evs = eventMap[selectedCalDay] || [];
-    const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing', task: 'Task' };
-    const leadOptions = leads.map(l => `<option value="${l.id}">${l.first_name || ''} ${l.last_name || ''}</option>`).join('');
-    panelHTML = `
-      <div class="cal-day-panel">
-        <h4>${fmtDateLong(selectedCalDay)}</h4>
-        ${evs.length === 0
-          ? `<div class="activity-empty">No deadlines scheduled.</div>`
-          : evs.map(e => `
-            <div class="cal-event-row" onclick="${e.type === 'task' ? `openTask('${e.obj.id}')` : `openLead('${e.obj.id}')`}">
-              <span class="cal-event-tag ${e.type}">${tagLabel[e.type]}</span>
-              <div>
-                <div style="font-weight:600;font-size:14px">${e.type === 'task' ? e.obj.title : `${e.obj.first_name || ''} ${e.obj.last_name || ''}`}</div>
-                <div style="font-size:12px;color:var(--muted)">${e.type === 'task' ? (e.obj.status || '').replace(/_/g, ' ') : `${fmtCurrency(e.obj.loan_amount)} · ${e.obj.status}`}</div>
-              </div>
+  const tagLabel = { followup: 'Follow-up', ratelock: 'Rate lock', closing: 'Closing', task: 'Task' };
+
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const agendaDates = Object.keys(eventMap).filter(d => d.startsWith(monthPrefix));
+  if (selectedCalDay && selectedCalDay.startsWith(monthPrefix) && !agendaDates.includes(selectedCalDay)) {
+    agendaDates.push(selectedCalDay);
+  }
+  agendaDates.sort();
+
+  const leadOptions = leads.map(l => `<option value="${l.id}">${l.first_name || ''} ${l.last_name || ''}</option>`).join('');
+
+  const agendaHTML = agendaDates.length === 0
+    ? `<div class="activity-empty" style="margin-top:14px">No deadlines scheduled this month.</div>`
+    : agendaDates.map(dateStr => {
+        const evs = eventMap[dateStr] || [];
+        const isSelected = dateStr === selectedCalDay;
+        const rows = evs.map(e => `
+          <div class="cal-event-row" onclick="${e.type === 'task' ? `openTask('${e.obj.id}')` : `openLead('${e.obj.id}')`}">
+            <span class="cal-event-tag ${e.type}">${tagLabel[e.type]}</span>
+            <div>
+              <div style="font-weight:600;font-size:14px">${e.type === 'task' ? e.obj.title : `${e.obj.first_name || ''} ${e.obj.last_name || ''}`}</div>
+              <div style="font-size:12px;color:var(--muted)">${e.type === 'task' ? (e.obj.status || '').replace(/_/g, ' ') : `${fmtCurrency(e.obj.loan_amount)} · ${e.obj.status}`}</div>
             </div>
-          `).join('')
-        }
-        ${calAddFormOpen ? `
+          </div>
+        `).join('');
+        const addBlock = !isSelected ? '' : (calAddFormOpen ? `
           <div class="cal-add-form">
             <select id="calAddLeadSelect">${leadOptions}</select>
             <input id="calAddNote" placeholder="Follow-up details...">
@@ -2597,10 +2607,15 @@ function renderCalendar() {
               <button class="cal-save-btn" onclick="saveCalAddForm()">Save Follow-Up</button>
             </div>
           </div>
-        ` : `<button class="cal-add-btn" onclick="openCalAddForm()">+ Add Follow-Up for this Day</button>`}
-      </div>
-    `;
-  }
+        ` : `<button class="cal-add-btn" onclick="openCalAddForm()">+ Add Follow-Up for this Day</button>`);
+        return `
+          <div class="cal-agenda-day ${isSelected ? 'selected' : ''}">
+            <h4 onclick="selectCalDay('${dateStr}')">${fmtDateLong(dateStr)}</h4>
+            ${rows || (isSelected ? '' : '<div class="activity-empty">No deadlines scheduled.</div>')}
+            ${addBlock}
+          </div>
+        `;
+      }).join('');
 
   wrap.innerHTML = `
     <div class="cal-nav">
@@ -2618,7 +2633,10 @@ function renderCalendar() {
       <span><div class="cal-dot closing"></div>Closing</span>
       <span><div class="cal-dot task"></div>Task</span>
     </div>
-    ${panelHTML}
+    <div class="cal-agenda">
+      <div class="cal-agenda-header">This Month's Deadlines</div>
+      ${agendaHTML}
+    </div>
   `;
 }
 
