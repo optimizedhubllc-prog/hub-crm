@@ -192,6 +192,7 @@
   .cal-view-toggle { display: flex; gap: 4px; background: var(--pearl); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
   .cal-view-btn { padding: 6px 12px; border-radius: 6px; border: none; background: none; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
   .cal-view-btn.active { background: var(--ink); color: white; }
+  .cal-view-select { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--ink); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .cal-today-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--ink); font-size: 12px; font-weight: 700; cursor: pointer; }
 
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -1028,6 +1029,9 @@ const DOC_TYPES = ['Pay Stubs', 'Bank Statements', 'Tax Returns', 'W-2s', 'Photo
 let currentDocs = [];
 let docAddFormOpen = false;
 let docLeadId = null;
+let docReqSelectedTypes = [];
+let docReqOtherText = '';
+let docReqNotesText = '';
 
 window.addEventListener('error', (e) => {
   const el = document.getElementById('authError');
@@ -1104,6 +1108,7 @@ window.toggleLetterCheck = toggleLetterCheck;
 window.printLetter = printLetter;
 window.openDocAddForm = openDocAddForm;
 window.closeDocAddForm = closeDocAddForm;
+window.toggleDocReqType = toggleDocReqType;
 window.saveDocRequest = saveDocRequest;
 window.markDocStatus = markDocStatus;
 
@@ -1672,29 +1677,50 @@ function renderDocAddForm() {
     wrap.innerHTML = `<button class="cal-add-btn" onclick="openDocAddForm()">+ Request Document</button>`;
     return;
   }
-  const options = DOC_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+  const options = DOC_TYPES.map(t =>
+    `<div class="tag-option ${docReqSelectedTypes.includes(t) ? 'selected' : ''}" onclick="toggleDocReqType('${t}')">${t}</div>`
+  ).join('');
+  const showOther = docReqSelectedTypes.includes('Other');
+  const count = docReqSelectedTypes.length;
   wrap.innerHTML = `
     <div class="doc-req-add">
-      <select id="docReqType">${options}</select>
-      <input id="docReqTypeOther" placeholder="Specify document" style="display:none">
-      <input id="docReqNotes" placeholder="Notes for this request (optional)">
+      <div class="section-hint" style="margin:0 0 2px">Select one or more documents to request.</div>
+      <div class="tag-picker">${options}</div>
+      <input id="docReqTypeOther" placeholder="Specify document" style="display:${showOther ? 'block' : 'none'}" value="${escapeHtml(docReqOtherText)}">
+      <input id="docReqNotes" placeholder="Notes for this request (optional)" value="${escapeHtml(docReqNotesText)}">
       <div class="cal-add-form-actions">
         <button class="cal-cancel-btn" onclick="closeDocAddForm()">Cancel</button>
-        <button class="cal-save-btn" onclick="saveDocRequest()">Request Document</button>
+        <button class="cal-save-btn" onclick="saveDocRequest()">Request${count > 1 ? ` ${count} Documents` : count === 1 ? ' Document' : ''}</button>
       </div>
     </div>
   `;
-  document.getElementById('docReqType').onchange = (e) => {
-    document.getElementById('docReqTypeOther').style.display = e.target.value === 'Other' ? 'block' : 'none';
-  };
 }
 
-function openDocAddForm() { docAddFormOpen = true; renderDocAddForm(); }
+function toggleDocReqType(t) {
+  const otherEl = document.getElementById('docReqTypeOther');
+  const notesEl = document.getElementById('docReqNotes');
+  if (otherEl) docReqOtherText = otherEl.value;
+  if (notesEl) docReqNotesText = notesEl.value;
+  if (docReqSelectedTypes.includes(t)) docReqSelectedTypes = docReqSelectedTypes.filter(x => x !== t);
+  else docReqSelectedTypes.push(t);
+  renderDocAddForm();
+}
+
+function openDocAddForm() {
+  docAddFormOpen = true;
+  docReqSelectedTypes = [];
+  docReqOtherText = '';
+  docReqNotesText = '';
+  renderDocAddForm();
+}
 function closeDocAddForm() { docAddFormOpen = false; renderDocAddForm(); }
 
 async function loadDocuments(leadId) {
   docLeadId = leadId;
   docAddFormOpen = false;
+  docReqSelectedTypes = [];
+  docReqOtherText = '';
+  docReqNotesText = '';
   const listWrap = document.getElementById('documentsList');
   listWrap.innerHTML = `<div class="activity-empty">Loading requested documents...</div>`;
 
@@ -1717,26 +1743,32 @@ async function loadDocuments(leadId) {
 }
 
 async function saveDocRequest() {
-  const typeSel = document.getElementById('docReqType').value;
-  const typeOther = document.getElementById('docReqTypeOther').value.trim();
-  const docType = typeSel === 'Other' ? (typeOther || 'Other') : typeSel;
-  const notes = document.getElementById('docReqNotes').value.trim() || null;
   if (!docLeadId) return;
+  if (!docReqSelectedTypes.length) { showToast('Select at least one document.'); return; }
 
+  const otherText = (document.getElementById('docReqTypeOther')?.value || '').trim();
+  const notes = (document.getElementById('docReqNotes')?.value || '').trim() || null;
   const lead = leads.find(l => l.id === docLeadId);
-  const payload = {
+  const ownerLo = lead?.created_by || currentUserId;
+  const brokerageId = myProfile?.brokerage_id || null;
+
+  const payloads = docReqSelectedTypes.map(t => ({
     lead_id: docLeadId,
-    doc_type: docType,
+    doc_type: t === 'Other' ? (otherText || 'Other') : t,
     status: 'requested',
     notes,
-    brokerage_id: myProfile?.brokerage_id || null,
-    owner_lo: lead?.created_by || currentUserId,
-  };
+    brokerage_id: brokerageId,
+    owner_lo: ownerLo,
+  }));
 
   try {
-    const { error } = await supabase.from('documents').insert(payload);
+    const { error } = await supabase.from('documents').insert(payloads);
     if (error) throw error;
-    showToast('Document requested');
+    showToast(payloads.length > 1 ? `${payloads.length} documents requested` : 'Document requested');
+    docAddFormOpen = false;
+    docReqSelectedTypes = [];
+    docReqOtherText = '';
+    docReqNotesText = '';
     await loadDocuments(docLeadId);
   } catch (err) {
     showToast('Error: ' + err.message);
@@ -2824,11 +2856,11 @@ async function saveCalAddTask() {
 
 function calViewToggleHTML() {
   return `
-    <div class="cal-view-toggle">
-      <button class="cal-view-btn ${calendarView === 'day' ? 'active' : ''}" onclick="setCalendarView('day')">Day</button>
-      <button class="cal-view-btn ${calendarView === 'week' ? 'active' : ''}" onclick="setCalendarView('week')">Week</button>
-      <button class="cal-view-btn ${calendarView === 'month' ? 'active' : ''}" onclick="setCalendarView('month')">Month</button>
-    </div>
+    <select class="cal-view-select" onchange="setCalendarView(this.value)">
+      <option value="day" ${calendarView === 'day' ? 'selected' : ''}>Day</option>
+      <option value="week" ${calendarView === 'week' ? 'selected' : ''}>Week</option>
+      <option value="month" ${calendarView === 'month' ? 'selected' : ''}>Month</option>
+    </select>
   `;
 }
 
