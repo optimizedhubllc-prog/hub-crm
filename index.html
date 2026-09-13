@@ -531,7 +531,7 @@
       <div id="documentsSection" style="display:none">
         <div class="section-label" style="margin-top:0">Requested Documents</div>
         <div class="section-hint">Track what's been asked for on this file. Automated reminders go out to the borrower until it's marked received.</div>
-        <button type="button" class="activity-add-btn" style="width:100%;margin-bottom:12px" onclick="sendUploadLink(editingId)">📤 Send Secure Upload Link to Borrower</button>
+        <button type="button" class="activity-add-btn" style="width:100%;margin-bottom:12px" onclick="sendUploadLink()">📤 Send Secure Upload Link to Borrower</button>
         <div id="documentsList"></div>
         <div id="documentAddWrap"></div>
       </div>
@@ -1800,7 +1800,8 @@ async function saveDocRequest() {
   }
 }
 
-async function sendUploadLink(leadId) {
+async function sendUploadLink() {
+  const leadId = editingId;
   if (!leadId) { showToast('Save this lead first.'); return; }
   const l = leads.find(x => x.id === leadId);
   if (!l) return;
