@@ -126,6 +126,7 @@
   .status-dead { background: #F1F5F9; color: #64748B; }
   .substatus-label { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 3px; }
   .substatus-label::before { content: "◆"; font-size: 8px; color: var(--cobalt); }
+  .lang-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px; background: #FBF3EA; color: var(--copper); text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle; margin-left: 5px; }
   .sub-status-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
   .sub-status-option { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
   .sub-status-option.selected { border-color: var(--copper); background: var(--copper); color: white; }
@@ -567,6 +568,10 @@
             <input id="f_email" placeholder="maria@email.com" type="email" oninput="checkDuplicate()">
           </div>
         </div>
+        <div class="field">
+          <label>Preferred Contact Language</label>
+          <div class="tag-picker" id="languagePicker"></div>
+        </div>
 
         <div class="section-label">Loan Financials & Stage</div>
         <div class="field">
@@ -978,6 +983,11 @@ const TAGS = [
 const SOURCES = [
   'Client Referral', 'Realtor Referral', 'Past Client', 'Zillow',
   'Social Media', 'Website', 'Cold Import', 'Other'
+];
+
+const LANGUAGES = [
+  { key: 'en', label: 'English' },
+  { key: 'es', label: 'Español' },
 ];
 
 const SEND_STATUS_META = {
@@ -2745,7 +2755,7 @@ function renderList() {
       <div class="lead-main" onclick="openLead('${l.id}')">
         <div class="lead-avatar">${initials(l)}</div>
         <div class="lead-info">
-          <div class="lead-name">${l.first_name || ''} ${l.last_name || ''}</div>
+          <div class="lead-name">${l.first_name || ''} ${l.last_name || ''}${l.preferred_language === 'es' ? ' <span class="lang-badge">ES</span>' : ''}</div>
           <div class="lead-sub">${l.loan_type || 'Loan'} · ${l.realtor_name ? `Agent: ${l.realtor_name}` : (l.phone || l.email || 'No contact')}</div>
           <div class="lead-contact-age">${contactAgeLabel(l)}</div>
         </div>
@@ -3175,6 +3185,16 @@ function toggleTag(t) {
   renderTagPicker();
 }
 
+function renderLanguagePicker(selected) {
+  const picker = document.getElementById('languagePicker');
+  picker.innerHTML = LANGUAGES.map(l =>
+    `<div class="tag-option ${l.key === selected ? 'selected' : ''}" data-lang="${l.key}" onclick="selectLanguage('${l.key}')">${l.label}</div>`
+  ).join('');
+}
+window.selectLanguage = function(lang) {
+  document.querySelectorAll('#languagePicker .tag-option').forEach(el => el.classList.toggle('selected', el.dataset.lang === lang));
+};
+
 function renderSourcePicker(selected) {
   const sel = document.getElementById('f_source');
   sel.innerHTML = SOURCES.map(s => `<option value="${s}" ${s === selected ? 'selected' : ''}>${s}</option>`).join('');
@@ -3244,6 +3264,7 @@ function openNewLead() {
   renderSourcePicker('Client Referral');
   renderActivityLog();
   populateRealtorSelect('');
+  renderLanguagePicker('en');
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -3254,7 +3275,7 @@ function renderLeadCard(l) {
     <div class="lead-card-top">
       <div class="lead-card-avatar">${initials(l)}</div>
       <div>
-        <div class="lead-card-name">${l.first_name || ''} ${l.last_name || ''} ${l.loan_amount ? `· ${fmtCurrency(l.loan_amount)}` : ''}</div>
+        <div class="lead-card-name">${l.first_name || ''} ${l.last_name || ''} ${l.loan_amount ? `· ${fmtCurrency(l.loan_amount)}` : ''}${l.preferred_language === 'es' ? ' <span class="lang-badge">ES</span>' : ''}</div>
         <div class="lead-card-status"><span class="status-badge status-${slugify(l.status)}">${l.status}</span>${l.sub_status && l.sub_status !== l.status ? ` <span class="substatus-label">${l.sub_status}</span>` : ''}</div>
       </div>
     </div>
@@ -3328,6 +3349,7 @@ function openLead(id) {
   if (knownSource === 'Other') document.getElementById('f_source_other').value = l.source || '';
   renderActivityLog();
   populateRealtorSelect(l.realtor_name || '');
+  renderLanguagePicker(l.preferred_language || 'en');
 
   document.getElementById('partnerUpdatesSection').style.display = 'block';
   loadPartnerUpdates(id);
@@ -3512,6 +3534,7 @@ async function saveLead() {
 
   const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'Prospect';
   const selectedSubStatus = document.querySelector('.sub-status-option.selected')?.dataset.substatus || (SUB_STATUSES[selectedStatus] || [])[0] || 'New Lead';
+  const selectedLanguage = document.querySelector('#languagePicker .tag-option.selected')?.dataset.lang || 'en';
   const sourceSelect = document.getElementById('f_source').value;
   const finalSource = sourceSelect === 'Other'
     ? (document.getElementById('f_source_other').value.trim() || 'Other')
@@ -3532,6 +3555,7 @@ async function saveLead() {
     last_name: document.getElementById('f_last_name').value.trim() || null,
     phone: document.getElementById('f_phone').value.trim() || null,
     email: document.getElementById('f_email').value.trim() || null,
+    preferred_language: selectedLanguage,
     loan_amount: parseFloat(document.getElementById('f_loan_amount').value) || 0,
     interest_rate: parseFloat(document.getElementById('f_interest_rate').value) || null,
     realtor_name: document.getElementById('f_realtor_name').value.trim() || null,
