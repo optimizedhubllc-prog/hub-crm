@@ -580,19 +580,31 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <label>Loan Amount ($)</label>
-            <input id="f_loan_amount" type="number" placeholder="425000">
-          </div>
-          <div class="field">
-            <label>Interest Rate (%)</label>
-            <input id="f_interest_rate" type="number" step="0.001" placeholder="6.375">
+            <label>Property Address</label>
+            <input id="f_property_address" placeholder="123 Main St, Tampa, FL 33615">
           </div>
         </div>
         <div class="field-row">
           <div class="field">
+            <label>Purchase Price ($)</label>
+            <input id="f_purchase_price" type="number" placeholder="450000">
+          </div>
+          <div class="field">
+            <label>Loan Amount ($)</label>
+            <input id="f_loan_amount" type="number" placeholder="425000">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Interest Rate (%)</label>
+            <input id="f_interest_rate" type="number" step="0.001" placeholder="6.375">
+          </div>
+          <div class="field">
             <label>Loan Product</label>
             <input id="f_loan_type" placeholder="Purchase, Refi, Conventional, FHA...">
           </div>
+        </div>
+        <div class="field-row">
           <div class="field">
             <label>Lead Source</label>
             <select id="f_source"></select>
@@ -2527,6 +2539,8 @@ function exportTeamCSV() {
   const rows = leads.map(l => ({
     'Borrower First Name': l.first_name || '',
     'Borrower Last Name': l.last_name || '',
+    'Property Address': l.property_address || '',
+    'Purchase Price': l.purchase_price || 0,
     'Loan Amount': l.loan_amount || 0,
     'Interest Rate': l.interest_rate || '',
     'Stage': l.status || '',
@@ -2601,10 +2615,10 @@ async function openLetterModal(leadId) {
   letterChecklist = { credit: true, income: true, assets: true, aus: true };
   document.querySelectorAll('#lt_checklist .tag-option').forEach(el => el.classList.add('selected'));
 
-  document.getElementById('lt_purchase_price').value = '';
+  document.getElementById('lt_purchase_price').value = l?.purchase_price || '';
   document.getElementById('lt_loan_amount').value = l?.loan_amount || '';
   document.getElementById('lt_loan_type').value = l?.loan_type || '';
-  document.getElementById('lt_address').value = '';
+  document.getElementById('lt_address').value = l?.property_address || '';
   document.getElementById('lt_nmls').value = myProfile?.nmls_number || '';
 
   if (!myBrokerageRecord && myProfile?.brokerage_id) {
@@ -2738,7 +2752,8 @@ function renderList() {
       `${l.first_name} ${l.last_name}`.toLowerCase().includes(query) ||
       (l.phone || '').includes(query) ||
       (l.email || '').toLowerCase().includes(query) ||
-      (l.realtor_name || '').toLowerCase().includes(query)
+      (l.realtor_name || '').toLowerCase().includes(query) ||
+      (l.property_address || '').toLowerCase().includes(query)
     );
   }
   if (filtered.length === 0) {
@@ -2758,11 +2773,13 @@ function renderList() {
         <div class="lead-info">
           <div class="lead-name">${l.first_name || ''} ${l.last_name || ''}${l.preferred_language === 'es' ? ' <span class="lang-badge">ES</span>' : ''}</div>
           <div class="lead-sub">${l.loan_type || 'Loan'} · ${l.realtor_name ? `Agent: ${l.realtor_name}` : (l.phone || l.email || 'No contact')}</div>
+          ${l.property_address ? `<div class="lead-contact-age">📍 ${l.property_address}</div>` : ''}
           <div class="lead-contact-age">${contactAgeLabel(l)}</div>
         </div>
       </div>
       <div class="lead-meta">
         <div class="lead-vol">${l.loan_amount ? fmtCurrency(l.loan_amount) : '—'}</div>
+        ${l.purchase_price ? `<div style="font-size:11px;color:var(--muted)">Purchase: ${fmtCurrency(l.purchase_price)}</div>` : ''}
         <span class="status-badge status-${slugify(l.status)}">${l.status}</span>
         ${l.sub_status && l.sub_status !== l.status ? `<div class="substatus-label">${l.sub_status}</div>` : ''}
         ${l.next_follow_up ? `<div class="follow-date ${isOverdue(l.next_follow_up) ? 'overdue' : ''}">Follow up ${fmtDate(l.next_follow_up)}</div>` : ''}
@@ -3254,7 +3271,7 @@ function openNewLead() {
   document.getElementById('leadCard').classList.remove('show');
   document.getElementById('duplicateWarning').classList.remove('show');
 
-  ['first_name','last_name','phone','email','loan_amount','interest_rate','realtor_name','realtor_phone','loan_type','next_follow_up','last_contacted','rate_lock_expiration','closing_date','notes'].forEach(f => {
+  ['first_name','last_name','phone','email','property_address','purchase_price','loan_amount','interest_rate','realtor_name','realtor_phone','loan_type','next_follow_up','last_contacted','rate_lock_expiration','closing_date','notes'].forEach(f => {
     document.getElementById('f_' + f).value = '';
   });
   document.getElementById('f_source_other').value = '';
@@ -3283,6 +3300,8 @@ function renderLeadCard(l) {
     <div class="lead-card-contacts">
       ${l.phone ? `<div>📞 Borrower: ${l.phone}</div>` : ''}
       ${l.email ? `<div>✉️ Borrower: ${l.email}</div>` : ''}
+      ${l.property_address ? `<div>📍 Property: ${l.property_address}</div>` : ''}
+      ${l.purchase_price ? `<div>🏷️ Purchase Price: ${fmtCurrency(l.purchase_price)}</div>` : ''}
       ${l.realtor_name ? `<div>🤝 Realtor: ${l.realtor_name} ${l.realtor_phone ? `(${l.realtor_phone})` : ''}</div>` : ''}
       ${l.interest_rate ? `<div>📈 Rate: ${l.interest_rate}%</div>` : ''}
     </div>
@@ -3331,6 +3350,8 @@ function openLead(id) {
   document.getElementById('f_last_name').value = l.last_name || '';
   document.getElementById('f_phone').value = l.phone || '';
   document.getElementById('f_email').value = l.email || '';
+  document.getElementById('f_property_address').value = l.property_address || '';
+  document.getElementById('f_purchase_price').value = l.purchase_price || '';
   document.getElementById('f_loan_amount').value = l.loan_amount || '';
   document.getElementById('f_interest_rate').value = l.interest_rate || '';
   document.getElementById('f_realtor_name').value = l.realtor_name || '';
@@ -3557,6 +3578,8 @@ async function saveLead() {
     phone: document.getElementById('f_phone').value.trim() || null,
     email: document.getElementById('f_email').value.trim() || null,
     preferred_language: selectedLanguage,
+    property_address: document.getElementById('f_property_address').value.trim() || null,
+    purchase_price: parseFloat(document.getElementById('f_purchase_price').value) || null,
     loan_amount: parseFloat(document.getElementById('f_loan_amount').value) || 0,
     interest_rate: parseFloat(document.getElementById('f_interest_rate').value) || null,
     realtor_name: document.getElementById('f_realtor_name').value.trim() || null,
