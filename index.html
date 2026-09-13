@@ -111,6 +111,7 @@
   .lead-meta { text-align: right; flex-shrink: 0; }
   .lead-vol { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
   .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+  .status-prospect { background: #DBEAFE; color: #1D4ED8; }
   .status-new-lead { background: #DBEAFE; color: #1D4ED8; }
   .status-contacted { background: #FEF3C7; color: #B45309; }
   .status-application { background: #FDE9D0; color: #9A5B1F; }
@@ -118,10 +119,16 @@
   .status-under-contract { background: #BFDBFE; color: #1E40AF; }
   .status-processing { background: #E2E8F0; color: #334155; }
   .status-underwriting { background: #FDE68A; color: #92400E; }
+  .status-closing { background: #93C5FD; color: #1E3A8A; }
   .status-clear-to-close { background: #93C5FD; color: #1E3A8A; }
   .status-funded { background: #D1FAE5; color: #047857; }
   .status-post-close { background: #F1F5F9; color: #334155; }
   .status-dead { background: #F1F5F9; color: #64748B; }
+  .substatus-label { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+  .substatus-label::before { content: "◆"; font-size: 8px; color: var(--cobalt); }
+  .sub-status-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .sub-status-option { padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; background: white; color: var(--muted); }
+  .sub-status-option.selected { border-color: var(--copper); background: var(--copper); color: white; }
   .status-pending { background: #FEF3C7; color: #B45309; }
   .status-confirmed { background: #D1FAE5; color: #047857; }
   .status-reschedule-requested { background: #FDE9D0; color: #9A5B1F; }
@@ -469,7 +476,7 @@
       </div>
     </div>
     <div class="search-row" id="searchRow">
-      <input class="search-input" id="searchInput" placeholder="Search name, phone, email, or realtor..." oninput="renderList()">
+      <input class="search-input" id="searchInput" placeholder="Search name, phone, email, or realtor..." oninput="handleSearchInput()">
     </div>
   </header>
 
@@ -519,6 +526,14 @@
       <div class="lead-card" id="leadCard"></div>
       <div class="duplicate-warning" id="duplicateWarning"></div>
       <div class="quick-action-row" id="quickActionRow"></div>
+
+      <div id="documentsSection" style="display:none">
+        <div class="section-label" style="margin-top:0">Requested Documents</div>
+        <div class="section-hint">Track what's been asked for on this file. Automated reminders go out to the borrower until it's marked received.</div>
+        <button type="button" class="activity-add-btn" style="width:100%;margin-bottom:12px" onclick="sendUploadLink(editingId)">📤 Send Secure Upload Link to Borrower</button>
+        <div id="documentsList"></div>
+        <div id="documentAddWrap"></div>
+      </div>
 
       <div class="reassign-panel" id="reassignPanel" style="display:none">
         <div class="section-label" style="margin-top:0">Reassign File</div>
@@ -658,13 +673,6 @@
         <div class="section-label">Partner Updates</div>
         <div class="section-hint">Sent automatically to the referral partner each time this file changes stage.</div>
         <div class="pu-log" id="partnerUpdates"></div>
-      </div>
-
-      <div id="documentsSection" style="display:none">
-        <div class="section-label">Requested Documents</div>
-        <div class="section-hint">Track what's been asked for on this file. Automated reminders go out to the borrower until it's marked received.</div>
-        <div id="documentsList"></div>
-        <div id="documentAddWrap"></div>
       </div>
 
       <div class="section-label">Follow-up Log</div>
@@ -952,10 +960,15 @@ const SUPABASE_URL = 'https://yutslculmlgugedfvzzq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1dHNsY3VsbWxndWdlZGZ2enpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzY0MjcsImV4cCI6MjEwMzE1MjQyN30.dmX-Wim2qg2ELsYWKMwo6bh6E7XpXB6cK7M3mwZ248w';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STATUSES = [
-  'New Lead', 'Contacted', 'Application', 'Pre-Approved', 'Under Contract',
-  'Processing', 'Underwriting', 'Clear to Close', 'Funded', 'Post-Close', 'Dead'
-];
+const STATUSES = ['Prospect', 'Application', 'Processing', 'Closing', 'Dead'];
+
+const SUB_STATUSES = {
+  'Prospect': ['New Lead', 'Contacted'],
+  'Application': ['Application', 'Pre-Approved'],
+  'Processing': ['Under Contract', 'Processing', 'Underwriting'],
+  'Closing': ['Clear to Close', 'Funded', 'Post-Close'],
+  'Dead': ['Dead'],
+};
 
 const TAGS = [
   'First-Time Homebuyer', 'VA', 'FHA', 'Conventional', 'Jumbo', 'USDA',
@@ -980,6 +993,7 @@ const SEND_STATUS_META = {
 };
 
 const N8N_INVITE_WEBHOOK = 'https://primary-production-c3ad.up.railway.app/webhook/invite-user';
+const N8N_BORROWER_PORTAL_WEBHOOK = 'https://primary-production-c3ad.up.railway.app/webhook/borrower-portal';
 let inviteRole = 'lo';
 let inviteBrokerages = [];
 
@@ -1055,6 +1069,7 @@ window.closeModal = closeModal;
 window.saveLead = saveLead;
 window.deleteLead = deleteLead;
 window.renderList = renderList;
+window.handleSearchInput = handleSearchInput;
 window.openLead = openLead;
 window.setTab = setTab;
 window.setView = setView;
@@ -1775,6 +1790,34 @@ async function saveDocRequest() {
   }
 }
 
+async function sendUploadLink(leadId) {
+  if (!leadId) { showToast('Save this lead first.'); return; }
+  const l = leads.find(x => x.id === leadId);
+  if (!l) return;
+  showToast('Generating secure upload link...');
+  try {
+    const res = await fetch(N8N_BORROWER_PORTAL_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-oh-key': 'KqK3XMBDPKekeOh25bhLSRAeJx7hWiQhqDfC_fSnOO4' },
+      body: JSON.stringify({ action: 'generate_token', lead_id: leadId }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.message || 'Failed to generate link');
+    if (l.phone) {
+      const body = `Hi ${l.first_name || ''}, please upload your documents securely here: ${data.portal_url}`;
+      window.open(`sms:${l.phone.replace(/[^0-9+]/g, '')}?&body=${encodeURIComponent(body)}`, '_blank');
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(data.portal_url);
+      showToast('Link copied to clipboard — no phone on file to text it.');
+    } else {
+      showToast('Link: ' + data.portal_url);
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+window.sendUploadLink = sendUploadLink;
+
 async function markDocStatus(id, status) {
   try {
     const patch = { status };
@@ -1797,6 +1840,15 @@ function renderTabs() {
   ).join('');
 }
 function setTab(s) { activeTab = s; renderTabs(); renderList(); }
+
+function handleSearchInput() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (query && currentView !== 'list') {
+    setView('list');
+  } else {
+    renderList();
+  }
+}
 
 function setView(v) {
   currentView = v;
@@ -1856,10 +1908,10 @@ function renderToday() {
   const wrap = document.getElementById('todayWrap');
   const activeLeads = leads.filter(l => l.status !== 'Dead');
 
-  const pipelineLeads = leads.filter(l => !['Funded', 'Post-Close', 'Dead'].includes(l.status));
+  const pipelineLeads = leads.filter(l => !['Funded', 'Post-Close', 'Dead'].includes(l.sub_status || l.status));
   const totalVolume = pipelineLeads.reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
   const closingVolume = leads
-    .filter(l => ['Under Contract', 'Processing', 'Underwriting', 'Clear to Close', 'Funded'].includes(l.status))
+    .filter(l => ['Under Contract', 'Processing', 'Underwriting', 'Clear to Close', 'Funded'].includes(l.sub_status || l.status))
     .reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
 
   const overdueFollowups = activeLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up));
@@ -1903,7 +1955,7 @@ function renderToday() {
         <div class="today-card-dot ${isOverdue(l.next_follow_up) ? 'overdue' : 'due'}"></div>
         <div class="today-card-info">
           <div class="today-card-name">${l.first_name || ''} ${l.last_name || ''} ${l.loan_amount ? `· ${fmtCurrency(l.loan_amount)}` : ''}</div>
-          <div class="today-card-detail">${isOverdue(l.next_follow_up) ? 'Overdue since ' + fmtDate(l.next_follow_up) : 'Due today'} · ${l.status}</div>
+          <div class="today-card-detail">${isOverdue(l.next_follow_up) ? 'Overdue since ' + fmtDate(l.next_follow_up) : 'Due today'} · ${l.sub_status || l.status}</div>
         </div>
       </div>
     `)}
@@ -2467,6 +2519,7 @@ function exportTeamCSV() {
     'Loan Amount': l.loan_amount || 0,
     'Interest Rate': l.interest_rate || '',
     'Stage': l.status || '',
+    'Sub-Stage': l.sub_status || '',
     'Product': l.loan_type || '',
     'Realtor Partner': l.realtor_name || '',
     'Realtor Phone': l.realtor_phone || '',
@@ -2700,6 +2753,7 @@ function renderList() {
       <div class="lead-meta">
         <div class="lead-vol">${l.loan_amount ? fmtCurrency(l.loan_amount) : '—'}</div>
         <span class="status-badge status-${slugify(l.status)}">${l.status}</span>
+        ${l.sub_status && l.sub_status !== l.status ? `<div class="substatus-label">${l.sub_status}</div>` : ''}
         ${l.next_follow_up ? `<div class="follow-date ${isOverdue(l.next_follow_up) ? 'overdue' : ''}">Follow up ${fmtDate(l.next_follow_up)}</div>` : ''}
         ${lockStatus ? `<div class="lock-warning ${lockStatus}">${lockStatus === 'expired' ? 'Lock expired' : 'Lock exp.'} ${fmtDate(l.rate_lock_expiration)}</div>` : ''}
       </div>
@@ -3085,14 +3139,28 @@ function removeActivityEntry(idx) {
   renderActivityLog();
 }
 
-function renderStatusPicker(selected) {
+function renderStatusPicker(selectedBucket, selectedSub) {
   const picker = document.getElementById('statusPicker');
   picker.innerHTML = STATUSES.map(s =>
-    `<div class="status-option ${s === selected ? 'selected' : ''}" data-status="${s}" onclick="selectStatus('${s}')">${s}</div>`
+    `<div class="status-option ${s === selectedBucket ? 'selected' : ''}" data-status="${s}" onclick="selectStatus('${s}')">${s}</div>`
+  ).join('') + `<div class="sub-status-picker" id="subStatusPicker"></div>`;
+  renderSubStatusPicker(selectedBucket, selectedSub);
+}
+function renderSubStatusPicker(bucket, selectedSub) {
+  const wrap = document.getElementById('subStatusPicker');
+  if (!wrap) return;
+  const subs = SUB_STATUSES[bucket] || [];
+  const active = subs.includes(selectedSub) ? selectedSub : subs[0];
+  wrap.innerHTML = subs.map(s =>
+    `<div class="sub-status-option ${s === active ? 'selected' : ''}" data-substatus="${s}" onclick="selectSubStatus('${s}')">${s}</div>`
   ).join('');
 }
 window.selectStatus = function(s) {
   document.querySelectorAll('.status-option').forEach(el => el.classList.toggle('selected', el.dataset.status === s));
+  renderSubStatusPicker(s, null);
+};
+window.selectSubStatus = function(s) {
+  document.querySelectorAll('.sub-status-option').forEach(el => el.classList.toggle('selected', el.dataset.substatus === s));
 };
 
 function renderTagPicker() {
@@ -3171,7 +3239,7 @@ function openNewLead() {
   document.getElementById('f_source_other').value = '';
   document.getElementById('activityNote').value = '';
   document.getElementById('activityNextStep').value = '';
-  renderStatusPicker('New Lead');
+  renderStatusPicker('Prospect', 'New Lead');
   renderTagPicker();
   renderSourcePicker('Client Referral');
   renderActivityLog();
@@ -3187,7 +3255,7 @@ function renderLeadCard(l) {
       <div class="lead-card-avatar">${initials(l)}</div>
       <div>
         <div class="lead-card-name">${l.first_name || ''} ${l.last_name || ''} ${l.loan_amount ? `· ${fmtCurrency(l.loan_amount)}` : ''}</div>
-        <div class="lead-card-status"><span class="status-badge status-${slugify(l.status)}">${l.status}</span></div>
+        <div class="lead-card-status"><span class="status-badge status-${slugify(l.status)}">${l.status}</span>${l.sub_status && l.sub_status !== l.status ? ` <span class="substatus-label">${l.sub_status}</span>` : ''}</div>
       </div>
     </div>
     <div class="lead-card-contacts">
@@ -3208,7 +3276,7 @@ function openLead(id) {
   editingLeadSnapshot = l;
   editingActivityLog = Array.isArray(l.activity_log) ? JSON.parse(JSON.stringify(l.activity_log)) : [];
   editingTags = Array.isArray(l.tags) ? [...l.tags] : [];
-  originalStatus = l.status;
+  originalStatus = l.sub_status || l.status;
 
   const iAmOwner = l.created_by === currentUserId;
   const iAmAdmin = myProfile?.role === 'admin';
@@ -3253,7 +3321,7 @@ function openLead(id) {
   document.getElementById('f_notes').value = l.notes || '';
   document.getElementById('activityNote').value = '';
   document.getElementById('activityNextStep').value = '';
-  renderStatusPicker(l.status);
+  renderStatusPicker(l.status, l.sub_status);
   renderTagPicker();
   const knownSource = SOURCES.includes(l.source) ? l.source : (l.source ? 'Other' : 'Client Referral');
   renderSourcePicker(knownSource);
@@ -3442,17 +3510,18 @@ async function saveLead() {
   const firstName = document.getElementById('f_first_name').value.trim();
   if (!firstName) { showToast('First name is required.'); return; }
 
-  const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'New Lead';
+  const selectedStatus = document.querySelector('.status-option.selected')?.dataset.status || 'Prospect';
+  const selectedSubStatus = document.querySelector('.sub-status-option.selected')?.dataset.substatus || (SUB_STATUSES[selectedStatus] || [])[0] || 'New Lead';
   const sourceSelect = document.getElementById('f_source').value;
   const finalSource = sourceSelect === 'Other'
     ? (document.getElementById('f_source_other').value.trim() || 'Other')
     : sourceSelect;
 
   const activityLogToSave = [...editingActivityLog];
-  if (editingId && originalStatus && originalStatus !== selectedStatus) {
+  if (editingId && originalStatus && originalStatus !== selectedSubStatus) {
     activityLogToSave.push({
       date: todayStr(),
-      note: `Milestone changed: ${originalStatus} → ${selectedStatus}`,
+      note: `Milestone changed: ${originalStatus} → ${selectedSubStatus}`,
       next_step: null,
       auto: true,
     });
@@ -3468,6 +3537,7 @@ async function saveLead() {
     realtor_name: document.getElementById('f_realtor_name').value.trim() || null,
     realtor_phone: document.getElementById('f_realtor_phone').value.trim() || null,
     status: selectedStatus,
+    sub_status: selectedSubStatus,
     tags: editingTags,
     loan_type: document.getElementById('f_loan_type').value.trim() || null,
     source: finalSource,
@@ -3483,7 +3553,7 @@ async function saveLead() {
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving File...';
 
-  const statusChanged = !!(editingId && originalStatus && originalStatus !== selectedStatus);
+  const statusChanged = !!(editingId && originalStatus && originalStatus !== selectedSubStatus);
 
   try {
     if (editingId) {
