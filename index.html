@@ -2961,7 +2961,7 @@ function renderCalendarMonth(wrap, eventMap) {
         <h3>${monthLabel}</h3>
         <button onclick="navCalendar(1)">›</button>
       </div>
-      <div class="cal-nav-left"><button class="cal-today-btn" onclick="calendarToday()">Today</button>${calViewToggleHTML()}</div>
+      <div class="cal-nav-left">${calViewToggleHTML()}</div>
     </div>
     <div class="cal-grid">
       ${dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('')}
@@ -3008,7 +3008,7 @@ function renderCalendarWeek(wrap, eventMap) {
         <h3>${label}</h3>
         <button onclick="navCalendar(1)">›</button>
       </div>
-      <div class="cal-nav-left"><button class="cal-today-btn" onclick="calendarToday()">Today</button>${calViewToggleHTML()}</div>
+      <div class="cal-nav-left">${calViewToggleHTML()}</div>
     </div>
     <div class="cal-week-grid">${cols}</div>
     <div class="cal-legend">
@@ -3033,7 +3033,7 @@ function renderCalendarDay(wrap, eventMap) {
         <h3>${label}</h3>
         <button onclick="navCalendar(1)">›</button>
       </div>
-      <div class="cal-nav-left"><button class="cal-today-btn" onclick="calendarToday()">Today</button>${calViewToggleHTML()}</div>
+      <div class="cal-nav-left">${calViewToggleHTML()}</div>
     </div>
     ${renderDayPanel(dateStr, eventMap)}
   `;
