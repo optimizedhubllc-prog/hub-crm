@@ -924,6 +924,7 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="contactDeleteBtn" style="display:none" onclick="deleteContact()">Delete</button>
       <button class="btn btn-primary" id="contactSaveBtn" onclick="saveContact()">Save Contact</button>
     </div>
   </div>
@@ -1084,6 +1085,7 @@ let editingLeadSnapshot = null;
 let isDrOnly = false;
 let agentMsgLeadId = null;
 let allBrokerages = [];
+let opsExpandedId = null;
 
 const CONTACT_CATEGORIES = [
   { key: 'realtor', label: 'Realtor' },
@@ -1176,6 +1178,8 @@ window.closeContactModal = closeContactModal;
 window.saveContact = saveContact;
 window.setContactCatFilter = setContactCatFilter;
 window.selectContactCategory = selectContactCategory;
+window.deleteContact = deleteContact;
+window.toggleOpsRoster = toggleOpsRoster;
 window.handleRealtorSelect = handleRealtorSelect;
 window.saveInlineRealtor = saveInlineRealtor;
 window.openLetterModal = openLetterModal;
@@ -2348,6 +2352,7 @@ function openNewContact(presetName) {
   editingContactId = null;
   contactCategoryDraft = 'realtor';
   document.getElementById('contactModalTitle').textContent = 'New Contact';
+  document.getElementById('contactDeleteBtn').style.display = 'none';
   document.getElementById('c_first_name').value = presetName || '';
   document.getElementById('c_last_name').value = '';
   document.getElementById('c_company_name').value = '';
@@ -2364,6 +2369,7 @@ function openContact(id) {
   editingContactId = id;
   contactCategoryDraft = c.category;
   document.getElementById('contactModalTitle').textContent = 'Edit Contact';
+  document.getElementById('contactDeleteBtn').style.display = 'block';
   document.getElementById('c_first_name').value = c.first_name || '';
   document.getElementById('c_last_name').value = c.last_name || '';
   document.getElementById('c_company_name').value = c.company_name || '';
@@ -2414,6 +2420,20 @@ async function saveContact() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Save Contact';
+  }
+}
+
+async function deleteContact() {
+  if (!editingContactId) return;
+  if (!confirm('Permanently delete this contact?')) return;
+  try {
+    const { error } = await supabase.from('contacts').delete().eq('id', editingContactId);
+    if (error) throw error;
+    showToast('Contact deleted');
+    closeContactModal();
+    await loadContacts();
+  } catch (err) {
+    showToast('Error: ' + err.message);
   }
 }
 
@@ -2647,6 +2667,11 @@ function exportTeamCSV() {
   URL.revokeObjectURL(url);
 }
 
+function toggleOpsRoster(id) {
+  opsExpandedId = opsExpandedId === id ? null : id;
+  renderOps();
+}
+
 async function renderOps() {
   const wrap = document.getElementById('opsWrap');
   wrap.innerHTML = `<div class="today-empty">Loading ops summary...</div>`;
@@ -2661,11 +2686,14 @@ async function renderOps() {
     return;
   }
 
-  const rows = data.map(b => `
-    <div class="lo-card" style="cursor:default">
+  const rows = data.map(b => {
+    const expanded = opsExpandedId === b.brokerage_id;
+    const roster = brokerageProfiles.filter(p => p.brokerage_id === b.brokerage_id && p.role !== 'owner');
+    return `
+    <div class="lo-card" onclick="toggleOpsRoster('${b.brokerage_id}')">
       <div class="lo-card-avatar">${(b.brokerage_name || '?').slice(0, 2).toUpperCase()}</div>
       <div class="lo-card-info">
-        <div class="lo-card-name">${b.brokerage_name}</div>
+        <div class="lo-card-name">${b.brokerage_name} <span style="color:var(--muted);font-weight:400">${expanded ? '▲' : '▼'}</span></div>
         <div class="lo-card-detail">${b.lo_count} LO${b.lo_count === 1 ? '' : 's'} · ${b.active_lead_count} active leads · ${b.task_overdue_count} overdue task${b.task_overdue_count === 1 ? '' : 's'}</div>
         <div class="lo-card-detail" style="margin-top:2px">Last lead activity: ${b.last_lead_activity ? fmtDateTime(b.last_lead_activity) : 'None'} · Last task activity: ${b.last_task_activity ? fmtDateTime(b.last_task_activity) : 'None'}</div>
       </div>
@@ -2674,13 +2702,19 @@ async function renderOps() {
         <div style="font-size:12px;color:var(--muted)">${b.dead_lead_count} dead leads</div>
       </div>
     </div>
-  `).join('');
+    ${expanded ? `
+      <div class="roster-brokerage-block" style="margin-top:-2px;padding-left:4px">
+        ${roster.length ? roster.map(renderRosterPerson).join('') : '<div class="roster-empty">No team members provisioned in this brokerage yet.</div>'}
+      </div>
+    ` : ''}
+    `;
+  }).join('');
 
   wrap.innerHTML = `
     <div class="team-header">
       <div>
         <h2>Ops Dashboard</h2>
-        <p>Aggregate health signals only — no client, lead, or contact PII is shown here. For the actual team roster, use the Brokerage tab.</p>
+        <p>Click a brokerage to expand its team roster. Full pipeline PII lives in the Brokerage tab.</p>
       </div>
     </div>
     <div class="section-label">Brokerage Health</div>
