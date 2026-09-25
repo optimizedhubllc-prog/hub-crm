@@ -440,6 +440,20 @@
     .modal-overlay { align-items: center; }
     .modal { border-radius: 16px; max-height: 88vh; margin: 20px; }
   }
+
+  .roster-brokerage-block { margin-bottom: 26px; }
+  .roster-brokerage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .roster-brokerage-head h3 { font-size: 15px; font-weight: 700; }
+  .roster-brokerage-head span { font-size: 12px; color: var(--muted); }
+  .roster-person { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; background: white; }
+  .roster-person-avatar { width: 38px; height: 38px; border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; background: var(--cobalt); }
+  .roster-person-avatar.owner, .roster-person-avatar.admin { background: var(--ink); }
+  .roster-person-avatar.broker { background: var(--copper); }
+  .roster-person-info { flex: 1; min-width: 0; }
+  .roster-person-name { font-size: 14px; font-weight: 600; }
+  .roster-person-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .roster-person-role { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #F1F5F9; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+  .roster-empty { font-size: 13px; color: var(--muted); padding: 10px 2px; }
 </style>
 </head>
 <body>
@@ -1069,6 +1083,7 @@ let modalMode = 'edit';
 let editingLeadSnapshot = null;
 let isDrOnly = false;
 let agentMsgLeadId = null;
+let allBrokerages = [];
 
 const CONTACT_CATEGORIES = [
   { key: 'realtor', label: 'Realtor' },
@@ -1563,7 +1578,7 @@ async function fetchMyProfile() {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (error) { myProfile = null; return; }
   myProfile = data;
-  const showTeam = myProfile.role === 'broker' || myProfile.role === 'admin';
+  const showTeam = ['broker', 'admin', 'owner'].includes(myProfile.role);
   document.getElementById('viewToggleTeam').style.display = showTeam ? 'block' : 'none';
   const showOps = myProfile.role === 'owner';
   document.getElementById('viewToggleOps').style.display = showOps ? 'block' : 'none';
@@ -1573,10 +1588,12 @@ async function fetchMyProfile() {
   inviteBtn.style.display = canInvite ? 'inline-block' : 'none';
   inviteBtn.textContent = (myProfile.role === 'owner' || myProfile.role === 'admin') ? 'Invite' : 'Invite LO';
 
-  if (myProfile.role === 'admin') {
+  if (myProfile.role === 'admin' || myProfile.role === 'owner') {
     const { data: profs } = await supabase.from('profiles').select('*');
     brokerageProfiles = profs || [];
-    myBrokerageName = 'Network Admin';
+    const { data: broks } = await supabase.from('brokerages').select('id,name').order('name');
+    allBrokerages = broks || [];
+    myBrokerageName = myProfile.role === 'owner' ? 'All Brokerages' : 'Network Admin';
   } else if ((myProfile.role === 'broker' || myProfile.role === 'lo') && myProfile.brokerage_id) {
     const { data: profs } = await supabase.from('profiles').select('*').eq('brokerage_id', myProfile.brokerage_id);
     brokerageProfiles = profs || [];
@@ -2491,9 +2508,42 @@ function loInitials(userId) {
   return name.slice(0, 2).toUpperCase();
 }
 
+function brokerageNameById(id) {
+  if (!id) return 'Unassigned';
+  const b = allBrokerages.find(x => x.id === id);
+  return b ? b.name : 'Unknown Brokerage';
+}
+
+function roseterPersonAvatarClass(role) {
+  if (role === 'owner') return 'owner';
+  if (role === 'admin') return 'admin';
+  if (role === 'broker') return 'broker';
+  return '';
+}
+
+function renderRosterPerson(p) {
+  const loLeads = leads.filter(l => l.created_by === p.id);
+  const vol = loLeads.reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
+  const overdue = loLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up)).length;
+  const initials = (p.full_name || p.email || '?').slice(0, 2).toUpperCase();
+  const detail = loLeads.length
+    ? `${loLeads.length} file${loLeads.length === 1 ? '' : 's'} · ${fmtCurrency(vol)}${overdue ? ` · ${overdue} overdue` : ''}`
+    : 'No files yet';
+  return `
+    <div class="roster-person" ${loLeads.length ? `onclick="filterByLO('${p.id}', '${(p.full_name || p.email || '').replace(/'/g, "\\'")}')"` : ''} style="${loLeads.length ? 'cursor:pointer' : ''}">
+      <div class="roster-person-avatar ${roseterPersonAvatarClass(p.role)}">${initials}</div>
+      <div class="roster-person-info">
+        <div class="roster-person-name">${escapeHtml(p.full_name || p.email || 'Unnamed')}</div>
+        <div class="roster-person-detail">${escapeHtml(p.email || '')}${p.email ? ' · ' : ''}${detail}</div>
+      </div>
+      <span class="roster-person-role">${escapeHtml(p.role)}</span>
+    </div>
+  `;
+}
+
 function renderTeam() {
   const wrap = document.getElementById('teamWrap');
-  if (!myProfile || (myProfile.role !== 'broker' && myProfile.role !== 'admin')) {
+  if (!myProfile || !['broker', 'admin', 'owner'].includes(myProfile.role)) {
     wrap.innerHTML = `<div class="empty-state"><h3>Broker Access Level Required</h3><p>This overview is restricted to brokerage leadership.</p></div>`;
     return;
   }
@@ -2518,45 +2568,49 @@ function renderTeam() {
     `;
   }).join('');
 
-  const byLO = {};
-  leads.forEach(l => {
-    if (!byLO[l.created_by]) byLO[l.created_by] = [];
-    byLO[l.created_by].push(l);
-  });
-
-  const loRows = Object.keys(byLO).length === 0
-    ? `<div class="today-empty">No active files recorded in brokerage.</div>`
-    : Object.keys(byLO).map(userId => {
-        const loLeads = byLO[userId];
-        const loVol = loLeads.reduce((acc, l) => acc + (Number(l.loan_amount) || 0), 0);
-        const overdue = loLeads.filter(l => l.next_follow_up && isOverdue(l.next_follow_up)).length;
-        return `
-          <div class="lo-card" onclick="filterByLO('${userId}', '${loName(userId).replace(/'/g, "\\'")}')">
-            <div class="lo-card-avatar">${loInitials(userId)}</div>
-            <div class="lo-card-info">
-              <div class="lo-card-name">${loName(userId)}</div>
-              <div class="lo-card-detail">${overdue > 0 ? `${overdue} overdue items` : 'Pipeline clear'}</div>
+  // Roster: built from actual brokerage_profiles (people), not just lead-authors,
+  // so a brand-new team member with zero files still shows up.
+  let rosterHTML;
+  if (myProfile.role === 'owner') {
+    const nonOwner = brokerageProfiles.filter(p => p.role !== 'owner');
+    const byBrokerage = {};
+    nonOwner.forEach(p => {
+      const key = p.brokerage_id || 'unassigned';
+      if (!byBrokerage[key]) byBrokerage[key] = [];
+      byBrokerage[key].push(p);
+    });
+    const groupIds = Object.keys(byBrokerage).sort((a, b) => brokerageNameById(a === 'unassigned' ? null : a).localeCompare(brokerageNameById(b === 'unassigned' ? null : b)));
+    rosterHTML = groupIds.length === 0
+      ? `<div class="roster-empty">No team members provisioned yet.</div>`
+      : groupIds.map(id => {
+          const people = byBrokerage[id];
+          const bName = id === 'unassigned' ? 'Unassigned' : brokerageNameById(id);
+          return `
+            <div class="roster-brokerage-block">
+              <div class="roster-brokerage-head"><h3>${escapeHtml(bName)}</h3><span>${people.length} member${people.length === 1 ? '' : 's'}</span></div>
+              ${people.map(renderRosterPerson).join('')}
             </div>
-            <div class="lo-card-count">
-              <div style="font-weight:700;font-size:14px">${fmtCurrency(loVol)}</div>
-              <div style="font-size:12px;color:var(--muted)">${loLeads.length} files</div>
-            </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+  } else {
+    const roster = brokerageProfiles.filter(p => p.role !== 'owner' && p.id !== myProfile.id);
+    rosterHTML = roster.length === 0
+      ? `<div class="roster-empty">No other team members yet. Use Invite to add your first Loan Officer.</div>`
+      : roster.map(renderRosterPerson).join('');
+  }
 
   wrap.innerHTML = `
     <div class="team-header">
       <div>
-        <h2>${myProfile.role === 'admin' ? 'Network Overview' : myBrokerageName}</h2>
+        <h2>${myProfile.role === 'owner' ? 'All Brokerages — Team' : (myProfile.role === 'admin' ? 'Network Overview' : myBrokerageName)}</h2>
         <p>${fmtCurrency(totalBrokerageVolume)} total active pipeline volume across ${leads.length} files</p>
       </div>
       <button class="team-export-btn" onclick="exportTeamCSV()">Export Pipeline CSV</button>
     </div>
     <div class="section-label">Pipeline Stage Volume Breakdown</div>
     ${funnelHTML}
-    <div class="section-label">Originator Production Ranking</div>
-    ${loRows}
+    <div class="section-label">Team Roster</div>
+    ${rosterHTML}
   `;
 }
 
@@ -2626,7 +2680,7 @@ async function renderOps() {
     <div class="team-header">
       <div>
         <h2>Ops Dashboard</h2>
-        <p>Aggregate health signals only — no client, lead, or contact PII is shown here.</p>
+        <p>Aggregate health signals only — no client, lead, or contact PII is shown here. For the actual team roster, use the Brokerage tab.</p>
       </div>
     </div>
     <div class="section-label">Brokerage Health</div>
