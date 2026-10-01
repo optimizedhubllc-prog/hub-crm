@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- BUILD MARKER: roster-v3-delete-contact -->
+<!-- BUILD MARKER: roster-v3-delete-contact + password-reset-v1 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hub CRM</title>
@@ -56,6 +56,8 @@
   .auth-btn:disabled { opacity: 0.5; }
   .auth-error { background: #FEF2F2; color: var(--danger); font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; display: none; }
   .auth-error.show { display: block; }
+  .auth-ok { background: #F0FDF4; color: var(--success); font-size: 13px; padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; display: none; line-height: 1.5; }
+  .auth-ok.show { display: block; }
   .auth-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.5; }
 
   header { background: var(--ink); color: var(--white); padding: 16px 16px; position: sticky; top: 0; z-index: 20; }
@@ -490,17 +492,31 @@
       </svg>
     </div>
     <div class="auth-logo">Hub <span>CRM</span></div>
-    <div class="auth-sub">Sign in to manage your loan pipeline</div>
+    <div class="auth-sub" id="authSub">Sign in to manage your loan pipeline</div>
     <div class="auth-error" id="authError"></div>
-    <div class="auth-field">
+    <div class="auth-ok" id="authOk"></div>
+    <div class="auth-field" id="authEmailWrap">
       <label>Email</label>
       <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
     </div>
-    <div class="auth-field">
+    <div class="auth-field" id="authPasswordWrap">
       <label>Password</label>
       <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
+    <div id="authNewPwWrap" style="display:none">
+      <div class="auth-field">
+        <label>New password</label>
+        <input id="authNewPw" type="password" placeholder="At least 8 characters" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>Confirm new password</label>
+        <input id="authNewPw2" type="password" placeholder="Repeat password" autocomplete="new-password">
+      </div>
+    </div>
     <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign in</button>
+    <div style="text-align:center;margin-top:14px">
+      <a href="#" id="authToggleLink" style="color:var(--cobalt);font-size:13px;font-weight:600;text-decoration:none">Forgot password?</a>
+    </div>
     <div class="auth-note">Authorized accounts only. Contact your broker administrator for access.</div>
   </div>
 </div>
@@ -1432,26 +1448,91 @@ function showAuthError(msg) {
   el.classList.add('show');
 }
 function hideAuthError() { document.getElementById('authError').classList.remove('show'); }
+function showAuthOk(msg) {
+  const el = document.getElementById('authOk');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideAuthOk() { document.getElementById('authOk').classList.remove('show'); }
+
+// ---- Auth modes: signin | forgot | recovery ----
+let authMode = 'signin';
+let recoveryActive = /type=recovery/.test(location.hash);
+const AUTH_COPY = {
+  signin:   { sub: 'Sign in to manage your loan pipeline', btn: 'Sign in', link: 'Forgot password?' },
+  forgot:   { sub: "Enter your email and we'll send a reset link", btn: 'Send reset link', link: 'Back to sign in' },
+  recovery: { sub: 'Choose a new password', btn: 'Save new password', link: '' },
+};
+
+function setAuthMode(mode) {
+  authMode = mode;
+  hideAuthError();
+  hideAuthOk();
+  const $ = id => document.getElementById(id);
+  const c = AUTH_COPY[mode];
+  $('authSub').textContent = c.sub;
+  $('authSubmitBtn').textContent = c.btn;
+  $('authToggleLink').textContent = c.link;
+  $('authToggleLink').style.display = mode === 'recovery' ? 'none' : 'inline';
+  $('authEmailWrap').style.display = mode === 'recovery' ? 'none' : 'block';
+  $('authPasswordWrap').style.display = mode === 'signin' ? 'block' : 'none';
+  $('authNewPwWrap').style.display = mode === 'recovery' ? 'block' : 'none';
+}
 
 async function submitAuth() {
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
   hideAuthError();
-  if (!email || !password) { showAuthError('Enter both email and password.'); return; }
-
+  hideAuthOk();
   const btn = document.getElementById('authSubmitBtn');
   btn.disabled = true;
-  btn.textContent = 'Authenticating...';
+  btn.textContent = 'Working...';
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    if (authMode === 'forgot') {
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email) { showAuthError('Enter your email.'); return; }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://app.optimizedhub.com' });
+      if (error && error.status === 429) throw new Error('Too many requests. Wait a minute and try again.');
+      showAuthOk('If that email has an account, a reset link is on its way. Check your inbox and spam folder.');
+    } else if (authMode === 'recovery') {
+      const pw = document.getElementById('authNewPw').value;
+      const pw2 = document.getElementById('authNewPw2').value;
+      if (pw.length < 8) { showAuthError('Password must be at least 8 characters.'); return; }
+      if (pw !== pw2) { showAuthError('Passwords do not match.'); return; }
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) throw error;
+      recoveryActive = false;
+      history.replaceState(null, '', location.pathname);
+      document.getElementById('authNewPw').value = '';
+      document.getElementById('authNewPw2').value = '';
+      setAuthMode('signin');
+      await showApp();
+    } else {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) { showAuthError('Enter both email and password.'); return; }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
   } catch (err) {
     showAuthError(err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Sign in';
+    btn.textContent = AUTH_COPY[authMode].btn;
   }
+}
+
+document.getElementById('authToggleLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  setAuthMode(authMode === 'signin' ? 'forgot' : 'signin');
+});
+['authEmail', 'authPassword', 'authNewPw', 'authNewPw2'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitAuth();
+  });
+});
+if (/error_code=otp_expired/.test(location.hash)) {
+  setAuthMode('forgot');
+  showAuthError('That reset link expired. Enter your email to get a new one.');
 }
 
 let realtimeChannel = null;
@@ -1615,6 +1696,13 @@ function showAuth() {
 }
 
 supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'USER_UPDATED') return;
+  if (event === 'PASSWORD_RECOVERY') recoveryActive = true;
+  if (recoveryActive) {
+    showAuth();
+    if (session) setAuthMode('recovery');
+    return;
+  }
   if (session) showApp(); else showAuth();
 });
 
