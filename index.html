@@ -583,6 +583,7 @@
       <div class="lead-card" id="leadCard"></div>
       <div class="duplicate-warning" id="duplicateWarning"></div>
       <div class="quick-action-row" id="quickActionRow"></div>
+      <div id="reactivationSection" style="display:none;margin-bottom:20px"></div>
 
       <div id="documentsSection" style="display:none">
         <div class="section-label" style="margin-top:0">Requested Documents</div>
@@ -1619,6 +1620,8 @@ async function renderDrOnlyView() {
   const active = campaigns.filter(c => c.status === 'active' && !c.dnc).length;
   const touched = campaigns.filter(c => (c.sequence_step || 0) > 0).length;
   const optedOut = campaigns.filter(c => c.dnc).length;
+  const responded = campaigns.filter(c => c.status === 'responded').length;
+  const converted = campaigns.filter(c => c.status === 'converted').length;
   const name = (myProfile.full_name || '').split(' ')[0] || 'there';
 
   wrap.innerHTML = `
@@ -1637,18 +1640,26 @@ async function renderDrOnlyView() {
         <div class="dr-stat-value cobalt">${active}</div>
       </div>
       <div class="dr-stat-card">
-        <div class="dr-stat-label">Touches sent</div>
+        <div class="dr-stat-label">Leads touched</div>
         <div class="dr-stat-value copper">${touched}</div>
       </div>
       <div class="dr-stat-card">
         <div class="dr-stat-label">Opted out</div>
         <div class="dr-stat-value">${optedOut}</div>
       </div>
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Replied</div>
+        <div class="dr-stat-value cobalt">${responded}</div>
+      </div>
+      <div class="dr-stat-card">
+        <div class="dr-stat-label">Reactivated ✓</div>
+        <div class="dr-stat-value" style="color:var(--success)">${converted}</div>
+      </div>
     </div>
     ${total === 0 ? `
       <div class="dr-note-card"><b>Nothing enrolled yet.</b> Once your database is loaded, this dashboard will fill in automatically.</div>
     ` : `
-      <div class="dr-note-card">Your leads are being worked automatically on a set schedule. <b>${touched}</b> have received at least one outreach message so far.</div>
+      <div class="dr-note-card">Your leads are being worked automatically on a set schedule. <b>${touched}</b> have received at least one outreach message so far${converted ? `, and <b>${converted}</b> re-entered your pipeline` : ''}.</div>
     `}
     <div class="dr-upgrade-card">
       <p>Want the full CRM — loan pipeline, tasks, calendar — alongside your reactivation? </p>
@@ -1954,9 +1965,11 @@ async function sendUploadLink() {
   if (!l) return;
   showToast('Generating secure upload link...');
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Your session expired — please sign in again.');
     const res = await fetch(N8N_BORROWER_PORTAL_WEBHOOK, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-oh-key': 'KqK3XMBDPKekeOh25bhLSRAeJx7hWiQhqDfC_fSnOO4' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
       body: JSON.stringify({ action: 'generate_token', lead_id: leadId }),
     });
     const data = await res.json();
@@ -1975,6 +1988,75 @@ async function sendUploadLink() {
   }
 }
 window.sendUploadLink = sendUploadLink;
+
+// ---- Database reactivation enrollment ----
+async function getActiveCampaign(leadId) {
+  const { data, error } = await supabase
+    .from('reactivation_campaigns')
+    .select('id,status,sequence_step,next_touch_date')
+    .eq('lead_id', leadId)
+    .eq('status', 'active')
+    .limit(1);
+  if (error) { console.error(error); return null; }
+  return (data && data[0]) || null;
+}
+
+async function renderReactivationSection(l) {
+  const wrap = document.getElementById('reactivationSection');
+  if (!wrap) return;
+  const isDead = (l.sub_status || l.status) === 'Dead';
+  wrap.style.display = 'block';
+  wrap.innerHTML = '<div class="activity-empty">Checking reactivation status...</div>';
+  const campaign = await getActiveCampaign(l.id);
+  if (editingId !== l.id) return; // user moved on while we were checking
+  if (!isDead && !campaign) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  if (campaign) {
+    wrap.innerHTML = '<div class="dr-note-card" style="margin-bottom:0"><b>Enrolled in reactivation.</b> '
+      + 'Touch ' + (campaign.sequence_step || 0) + ' of 3 · next touch ' + (campaign.next_touch_date || 'scheduled')
+      + '. Any reply becomes a hot-lead task assigned to you.</div>';
+  } else {
+    wrap.innerHTML = '<button type="button" class="activity-add-btn" style="width:100%;padding:12px" '
+      + 'onclick="enrollInReactivation(\'' + l.id + '\')">⚡ Enroll in Database Reactivation</button>'
+      + '<div class="section-hint" style="margin-top:8px">Adds this contact to the automated 3-touch SMS + email sequence. '
+      + 'First message goes out on the next daily run. Any reply becomes a hot-lead task assigned to you.</div>';
+  }
+}
+
+async function enrollInReactivation(leadId) {
+  const l = leads.find(x => x.id === leadId);
+  if (!l) return;
+  if (!l.phone) { showToast('Add a phone number before enrolling.'); return; }
+  const existing = await getActiveCampaign(leadId);
+  if (existing) { showToast('Already enrolled in reactivation.'); return; }
+  try {
+    const { error: campErr } = await supabase.from('reactivation_campaigns').insert({
+      lead_id: leadId,
+      owner_lo: l.created_by || currentUserId,
+      brokerage_id: myProfile?.brokerage_id || null,
+      status: 'active',
+      opt_in: true,
+      dnc: false,
+      sequence_step: 0,
+      next_touch_date: todayStr(),
+    });
+    if (campErr) throw campErr;
+    // The sending engine skips CRM-Dead files, so move it back to a live stage
+    const log = Array.isArray(l.activity_log) ? [...l.activity_log] : [];
+    log.push({ date: todayStr(), note: 'Enrolled in database reactivation sequence', next_step: null, auto: true });
+    const { error: leadErr } = await supabase.from('leads')
+      .update({ status: 'Prospect', sub_status: 'Contacted', activity_log: log })
+      .eq('id', leadId);
+    if (leadErr) throw leadErr;
+    l.status = 'Prospect'; l.sub_status = 'Contacted'; l.activity_log = log;
+    renderStatusPicker('Prospect', 'Contacted');
+    showToast('Enrolled in reactivation');
+    await loadLeads();
+    renderReactivationSection(l);
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+}
+window.enrollInReactivation = enrollInReactivation;
 
 async function markDocStatus(id, status) {
   try {
@@ -3470,6 +3552,8 @@ function openNewLead() {
   document.getElementById('partnerUpdatesSection').style.display = 'none';
   document.getElementById('documentsSection').style.display = 'none';
   document.getElementById('quickActionRow').innerHTML = '';
+  document.getElementById('reactivationSection').style.display = 'none';
+  document.getElementById('reactivationSection').innerHTML = '';
   document.getElementById('leadCard').classList.remove('show');
   document.getElementById('duplicateWarning').classList.remove('show');
 
@@ -3546,6 +3630,7 @@ function openLead(id) {
   }
 
   document.getElementById('quickActionRow').innerHTML = quickActionsHTML(l, true);
+  renderReactivationSection(l);
   document.getElementById('duplicateWarning').classList.remove('show');
   renderLeadCard(l);
   document.getElementById('f_first_name').value = l.first_name || '';
