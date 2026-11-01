@@ -4367,9 +4367,15 @@ async function saveSettings() {
   persistSettingsLocal();
   const name = v('set_name').value.trim();
   try {
+    // Settings go through a narrow RPC (profiles has no self-UPDATE policy) so the
+    // server-side engines (e.g. borrower milestone texts) see the LO's choice.
+    if (settingsInProfile) {
+      const { error: sErr } = await supabase.rpc('update_my_settings', { p_settings: appSettings });
+      if (sErr) throw sErr;
+      myProfile.settings = appSettings;
+    }
     const patch = {};
     if (name && name !== myProfile?.full_name) patch.full_name = name;
-    if (settingsInProfile) patch.settings = appSettings;
     if (myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'nmls_id')) patch.nmls_id = appSettings.nmls || null;
     if (Object.keys(patch).length) {
       const { error } = await supabase.from('profiles').update(patch).eq('id', currentUserId);
