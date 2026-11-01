@@ -647,6 +647,10 @@
         <button type="button" class="activity-add-btn" style="width:100%;margin-bottom:12px" onclick="sendUploadLink()">📤 Send Secure Upload Link to Borrower</button>
         <div id="documentsList"></div>
         <div id="documentAddWrap"></div>
+        <div id="deleteDocsWrap" style="display:none;margin-top:12px">
+          <button type="button" class="activity-add-btn" id="deleteDocsBtn" style="width:100%;color:#B91C1C;border-color:#B91C1C" onclick="deleteAllDocuments()">🗑 Delete documents</button>
+          <div class="section-hint" style="margin-top:6px">Documents on Closed or Dead files are deleted automatically 30 days after the file closes. You can delete them sooner here.</div>
+        </div>
       </div>
 
       <div class="reassign-panel" id="reassignPanel" style="display:none">
@@ -1985,6 +1989,7 @@ function closeDocAddForm() { docAddFormOpen = false; renderDocAddForm(); }
 
 async function loadDocuments(leadId) {
   docLeadId = leadId;
+  updateDeleteDocsVisibility(leadId);
   docAddFormOpen = false;
   docReqSelectedTypes = [];
   docReqOtherText = '';
@@ -2042,6 +2047,42 @@ async function saveDocRequest() {
     showToast('Error: ' + err.message);
   }
 }
+
+const N8N_DELETE_DOCS_WEBHOOK = 'https://primary-production-c3ad.up.railway.app/webhook/hub-delete-documents';
+function isFileClosedOrDead(l) {
+  return !!l && (l.status === 'Dead' || ['Funded', 'Post-Close', 'Dead'].includes(l.sub_status));
+}
+function updateDeleteDocsVisibility(leadId) {
+  const wrap = document.getElementById('deleteDocsWrap');
+  if (!wrap) return;
+  wrap.style.display = isFileClosedOrDead(leads.find(x => x.id === leadId)) ? '' : 'none';
+}
+async function deleteAllDocuments() {
+  const leadId = editingId;
+  const l = leads.find(x => x.id === leadId);
+  if (!l || !isFileClosedOrDead(l)) { showToast('Documents can only be deleted on Closed or Dead files.'); return; }
+  if (!confirm("Delete all documents for this borrower? This can't be undone.")) return;
+  const btn = document.getElementById('deleteDocsBtn');
+  btn.disabled = true;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error('Your session expired — please sign in again.');
+    const res = await fetch(N8N_DELETE_DOCS_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ lead_id: leadId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.message || 'Could not delete documents.');
+    showToast(`Deleted ${data.deleted || 0} document file${data.deleted === 1 ? '' : 's'}.`);
+    await loadDocuments(leadId);
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+window.deleteAllDocuments = deleteAllDocuments;
 
 async function sendUploadLink() {
   const leadId = editingId;
