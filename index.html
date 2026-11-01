@@ -4366,25 +4366,17 @@ async function saveSettings() {
   };
   persistSettingsLocal();
   const name = v('set_name').value.trim();
+  if (!name) { showToast('Full name is required.'); return; }
+  if (appSettings.nmls && !/^\d{1,12}$/.test(appSettings.nmls)) { showToast('NMLS # must be digits only.'); return; }
   try {
-    // Settings go through a narrow RPC (profiles has no self-UPDATE policy) so the
-    // server-side engines (e.g. borrower milestone texts) see the LO's choice.
-    if (settingsInProfile) {
-      const { error: sErr } = await supabase.rpc('update_my_settings', { p_settings: appSettings });
-      if (sErr) throw sErr;
-      myProfile.settings = appSettings;
-    }
-    const patch = {};
-    if (name && name !== myProfile?.full_name) patch.full_name = name;
-    if (myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'nmls_id')) patch.nmls_id = appSettings.nmls || null;
-    if (Object.keys(patch).length) {
-      const { error } = await supabase.from('profiles').update(patch).eq('id', currentUserId);
-      if (error) throw error;
-      Object.assign(myProfile, patch);
-    }
+    // Narrow server function: only full name, NMLS # and settings on your own profile.
+    const { error } = await supabase.rpc('update_my_profile', { p_full_name: name, p_nmls_id: appSettings.nmls || '', p_settings: appSettings });
+    if (error) throw error;
+    if (myProfile) Object.assign(myProfile, { full_name: name, nmls_id: appSettings.nmls || null, settings: appSettings });
     showToast('Settings saved');
   } catch (err) {
-    showToast('Saved on this device. Profile sync failed: ' + err.message);
+    showToast('Settings NOT saved to your account: ' + (err.message || err) + '. Please try again.');
+    return;
   }
   renderSettings();
 }
