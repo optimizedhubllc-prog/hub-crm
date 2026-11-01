@@ -770,6 +770,7 @@
             <input id="f_realtor_phone" type="tel" placeholder="(813) 555-0199">
           </div>
         </div>
+        <label class="settings-check" style="margin:4px 0 12px"><input type="checkbox" id="f_milestone_texts_borrower" checked> Borrower milestone texts <span style="color:var(--muted);font-size:12px">(text the borrower automatically at each loan stage)</span></label>
 
         <div class="field">
           <label>Client & Loan Characteristics (Tags)</label>
@@ -3740,6 +3741,7 @@ function openNewLead() {
   renderActivityLog();
   populateRealtorSelect('');
   renderLanguagePicker('en');
+  document.getElementById('f_milestone_texts_borrower').checked = true;
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -3814,6 +3816,7 @@ function openLead(id) {
   document.getElementById('f_interest_rate').value = l.interest_rate || '';
   document.getElementById('f_realtor_name').value = l.realtor_name || '';
   document.getElementById('f_realtor_phone').value = l.realtor_phone || '';
+  document.getElementById('f_milestone_texts_borrower').checked = l.milestone_texts_borrower !== false;
   document.getElementById('f_loan_type').value = l.loan_type || '';
   document.getElementById('f_next_follow_up').value = l.next_follow_up || '';
   document.getElementById('f_last_contacted').value = l.last_contacted || '';
@@ -4042,6 +4045,7 @@ async function saveLead() {
     interest_rate: parseFloat(document.getElementById('f_interest_rate').value) || null,
     realtor_name: document.getElementById('f_realtor_name').value.trim() || null,
     realtor_phone: document.getElementById('f_realtor_phone').value.trim() || null,
+    milestone_texts_borrower: document.getElementById('f_milestone_texts_borrower').checked,
     status: selectedStatus,
     sub_status: selectedSubStatus,
     tags: editingTags,
@@ -4314,6 +4318,10 @@ function renderSettings() {
       <label class="settings-check"><input type="checkbox" id="set_n_weekly" ${s.notify_weekly_results ? 'checked' : ''}> Weekly results summary</label>
     </div>
     <div class="settings-section">
+      <h3>Borrower milestone texts</h3><div class="hint">Automatic texts to your borrowers (English or Spanish) as their loan moves through each stage. You can also turn them off on a single file.</div>
+      <label class="settings-check"><input type="checkbox" id="set_borrower_ms" ${String(s.borrower_milestone_texts) === 'false' ? '' : 'checked'}> Send borrower milestone texts on my files</label>
+    </div>
+    <div class="settings-section">
       <h3>Commission estimate</h3><div class="hint">Used only for the "Est. commission recovered" number on Today: leads back in pipeline × close rate × commission per loan. It's an estimate, not booked revenue.</div>
       <div class="settings-grid">
         <div class="settings-field"><label for="set_avg">Average loan amount ($)</label><input id="set_avg" type="number" min="0" step="1000" value="${Number(s.avg_loan_amount) || 0}"></div>
@@ -4354,6 +4362,7 @@ async function saveSettings() {
     notify_hot_lead_email: v('set_n_email').checked,
     notify_daily_digest: v('set_n_digest').checked,
     notify_weekly_results: v('set_n_weekly').checked,
+    borrower_milestone_texts: v('set_borrower_ms').checked,
   };
   persistSettingsLocal();
   const name = v('set_name').value.trim();
