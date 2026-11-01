@@ -4282,7 +4282,6 @@ function renderSettings() {
     </div>
     <div class="settings-section">
       <h3>Billing</h3><div class="hint">Update your card, download invoices, or change your plan.</div>
-      <!-- TODO(Pedro): replace with the Stripe customer portal link (Stripe Dashboard > Settings > Billing > Customer portal) or a server endpoint that creates a portal session. -->
       <button class="cta-btn secondary" onclick="openBillingPortal()">Manage billing</button>
     </div>
     <div class="cta-row" style="justify-content:flex-start"><button class="cta-btn" onclick="saveSettings()">Save settings</button>
@@ -4291,7 +4290,7 @@ function renderSettings() {
   `;
 }
 
-const BILLING_PORTAL_URL = ''; // TODO(Pedro): Stripe customer portal login link
+const BILLING_PORTAL_URL = 'https://billing.stripe.com/p/login/5kQ28sguXckzdn6fUhco000'; // Stripe customer portal (email login link; config bpc_1UX4OuL2jlTM9Ia6AfKAwDXm)
 function openBillingPortal() {
   if (BILLING_PORTAL_URL) window.open(BILLING_PORTAL_URL, '_blank', 'noopener');
   else showToast('Billing portal coming soon. Email optimizedhubllc@gmail.com for billing changes.');
