@@ -36,7 +36,7 @@
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
-  .app { max-width: 1100px; margin: 0 auto; min-height: 100vh; background: var(--white); box-shadow: 0 0 40px rgba(0,0,0,0.03); overflow-x: hidden; }
+  .app { max-width: 1200px; margin: 0 auto; min-height: 100vh; background: var(--white); box-shadow: 0 0 40px rgba(0,0,0,0.03); overflow-x: hidden; }
 
   .auth-screen {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -428,6 +428,58 @@
   .letter-sig { margin-top: 20px; font-size: 12.5px; }
   .letter-disclaimer { font-size: 11px; color: #444; margin: 16px 0; line-height: 1.6; }
 
+  /* ---- Results strip / onboarding / CTAs / campaigns / settings ---- */
+  .results-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px; }
+  .results-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .results-card .lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .results-card .val { font-size: 28px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+  .results-card .val.cobalt { color: var(--cobalt); }
+  .results-card .val.money { color: var(--success); }
+  .results-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .results-note { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
+  .results-note a, .link-btn { color: var(--cobalt); font-weight: 600; cursor: pointer; background: none; border: none; font-size: inherit; padding: 0; text-decoration: underline; }
+  .results-empty { background: var(--pearl); border: 1px dashed var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 24px; font-size: 14px; color: var(--ink); line-height: 1.5; }
+  .results-empty b { display: block; margin-bottom: 2px; }
+  .onboard-card { border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 24px; background: white; position: relative; }
+  .onboard-card h3 { font-size: 18px; margin-bottom: 4px; }
+  .onboard-card > p { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .onboard-dismiss { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .onboard-step { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--border); }
+  .onboard-num { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; color: var(--muted); }
+  .onboard-step.next .onboard-num { border-color: var(--cobalt); color: var(--cobalt); }
+  .onboard-step.done .onboard-num { background: var(--success); border-color: var(--success); color: white; }
+  .onboard-step-body { flex: 1; }
+  .onboard-step-title { font-weight: 700; font-size: 14px; }
+  .onboard-step-text { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .cta-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .cta-btn { background: var(--cobalt); color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .cta-btn.secondary { background: white; color: var(--ink); border: 1px solid var(--border); }
+  .onboard-step .cta-btn { padding: 8px 12px; font-size: 13px; }
+  .empty-state.compact { padding: 28px 20px; }
+  .campaigns-wrap, .settings-wrap { padding: 20px; padding-bottom: 100px; }
+  .camp-status-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; border-top: 1px solid var(--border); font-size: 14px; }
+  .settings-section { border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; background: white; }
+  .settings-section h3 { font-size: 15px; margin-bottom: 4px; }
+  .settings-section .hint { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .settings-field label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+  .settings-field input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; }
+  .settings-check { display: flex; gap: 10px; align-items: center; font-size: 14px; padding: 6px 0; }
+  .settings-check input { width: 18px; height: 18px; }
+  @media (max-width: 640px) {
+    .results-strip { grid-template-columns: 1fr; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 900px) {
+    body { font-size: 15px; }
+    .today-card-name, .lead-name { font-size: 15.5px; }
+    .today-card-detail, .lead-sub { font-size: 13.5px; }
+    .today-section-title { font-size: 13px; }
+    .view-toggle-btn { font-size: 14px; }
+    .empty-state p { font-size: 15px; }
+    .today-wrap, .tasks-wrap, .refi-wrap, .calendar-wrap, .team-wrap, .campaigns-wrap, .settings-wrap { padding-left: 32px; padding-right: 32px; }
+  }
+
   @media (max-width: 480px) {
     header { padding: 12px 12px; }
     header h1 { font-size: 16px; }
@@ -543,9 +595,11 @@
     <button class="view-toggle-btn" id="viewToggleTasks" onclick="setView('tasks')">Tasks</button>
     <button class="view-toggle-btn" id="viewToggleRefi" onclick="setView('refi')">Refi Alerts</button>
     <button class="view-toggle-btn" id="viewToggleCalendar" onclick="setView('calendar')">Calendar</button>
+    <button class="view-toggle-btn" id="viewToggleCampaigns" onclick="setView('campaigns')">Campaigns</button>
     <button class="view-toggle-btn" id="viewToggleContacts" onclick="setView('contacts')">Contacts</button>
     <button class="view-toggle-btn" id="viewToggleTeam" onclick="setView('team')" style="display:none">Brokerage</button>
     <button class="view-toggle-btn" id="viewToggleOps" onclick="setView('ops')" style="display:none">Ops</button>
+    <button class="view-toggle-btn" id="viewToggleSettings" onclick="setView('settings')">Settings</button>
   </div>
 
   <div class="broker-filter-banner" id="brokerFilterBanner" style="display:none"></div>
@@ -568,6 +622,8 @@
 
   <div class="calendar-wrap" id="calendarWrap" style="display:none"></div>
   <div class="team-wrap" id="contactsWrap" style="display:none"></div>
+  <div class="campaigns-wrap" id="campaignsWrap" style="display:none"></div>
+  <div class="settings-wrap" id="settingsWrap" style="display:none"></div>
   <div class="team-wrap" id="teamWrap" style="display:none"></div>
   <div class="team-wrap" id="opsWrap" style="display:none"></div>
   <div class="dr-wrap" id="drOnlyWrap" style="display:none"></div>
@@ -1569,6 +1625,11 @@ async function showApp() {
   document.getElementById('mainApp').style.display = 'block';
   await fetchMyProfile();
 
+  if (myProfile && myProfile.access_status === 'suspended' && !['owner','admin'].includes(myProfile.role)) {
+    await blockSuspended();
+    return;
+  }
+
   isDrOnly = !!(myProfile && myProfile.product_tier === 'dr_only');
 
   if (isDrOnly) {
@@ -1580,6 +1641,9 @@ async function showApp() {
   await loadLeads();
   await loadTasks();
   await loadContacts();
+  loadSettings();
+  await loadReactivationData();
+  if (currentView === 'today') renderToday();
   setupRealtimeSubscriptions();
 }
 
@@ -1598,6 +1662,8 @@ function applyDrOnlyLayout() {
   document.getElementById('contactsWrap').style.display = 'none';
   document.getElementById('teamWrap').style.display = 'none';
   document.getElementById('opsWrap').style.display = 'none';
+  document.getElementById('campaignsWrap').style.display = 'none';
+  document.getElementById('settingsWrap').style.display = 'none';
   document.getElementById('drOnlyWrap').style.display = 'block';
 }
 
@@ -1700,6 +1766,24 @@ async function fetchMyProfile() {
     }
   }
 }
+
+async function blockSuspended() {
+  try { teardownRealtimeSubscriptions(); } catch (_) {}
+  await supabase.auth.signOut();
+  showAuth();
+  const el = document.getElementById('authError');
+  if (el) {
+    el.textContent = 'Your subscription is inactive. Contact us at admin@optimizedhub.com to restore access.';
+    el.classList.add('show');
+  }
+}
+
+// Re-check on return to the tab (covers long-lived sessions after a nightly suspension)
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible' || !currentUserId) return;
+  const { data } = await supabase.from('profiles').select('access_status, role').eq('id', currentUserId).single();
+  if (data && data.access_status === 'suspended' && !['owner','admin'].includes(data.role)) await blockSuspended();
+});
 
 function showAuth() {
   document.getElementById('authScreen').style.display = 'flex';
@@ -2100,6 +2184,10 @@ function setView(v) {
   document.getElementById('viewToggleContacts').classList.toggle('active', v === 'contacts');
   document.getElementById('viewToggleTeam').classList.toggle('active', v === 'team');
   document.getElementById('viewToggleOps').classList.toggle('active', v === 'ops');
+  document.getElementById('viewToggleCampaigns').classList.toggle('active', v === 'campaigns');
+  document.getElementById('viewToggleSettings').classList.toggle('active', v === 'settings');
+  document.getElementById('campaignsWrap').style.display = v === 'campaigns' ? 'block' : 'none';
+  document.getElementById('settingsWrap').style.display = v === 'settings' ? 'block' : 'none';
   document.getElementById('todayWrap').style.display = v === 'today' ? 'block' : 'none';
   document.getElementById('tabs').style.display = v === 'list' ? 'flex' : 'none';
   document.getElementById('list').style.display = v === 'list' ? 'block' : 'none';
@@ -2118,6 +2206,8 @@ function setView(v) {
   if (v === 'team') renderTeam();
   if (v === 'ops') renderOps();
   if (v === 'list') renderList();
+  if (v === 'campaigns') renderCampaigns();
+  if (v === 'settings') renderSettings();
 }
 
 function renderBrokerFilterBanner() {
@@ -2189,6 +2279,9 @@ function renderToday() {
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtCurrency(closingVolume)} In Production</div>
       </div>
     </div>
+
+    ${renderOnboarding()}
+    ${renderResultsStrip()}
 
     ${section('Follow-ups Requiring Attention', overdueFollowups.length + dueTodayFollowups.length, [...overdueFollowups, ...dueTodayFollowups], l => `
       <div class="today-card" onclick="openLead('${l.id}')">
@@ -2265,6 +2358,14 @@ function renderTasks() {
     </div>
   `;
 
+  if (active.length === 0 && completed.length === 0) {
+    wrap.innerHTML = emptyCTA('✅', 'No tasks yet',
+      leads.length === 0
+        ? 'Tasks are created automatically as files move through your pipeline (milestones, rate-lock alerts, hot-lead replies). Start by importing your past clients.'
+        : 'Hot-lead replies, milestone follow-ups, and rate-lock alerts will land here automatically. You can also add one yourself.',
+      [ ['+ Add task', 'openNewTask()'], ...(leads.length === 0 ? [['Import past clients', 'openImport()', true]] : []) ]);
+    return;
+  }
   wrap.innerHTML = `
     ${section('Overdue Milestones', 'overdue', overdue)}
     ${section('Reschedule Queue', 'resched', needsResched)}
@@ -2291,6 +2392,21 @@ function renderRefi() {
     </div>
   `;
 
+  const fundedCount = leads.filter(l => ['Funded', 'Post-Close'].includes(l.sub_status)).length;
+  if (refiTasks.length === 0) {
+    wrap.innerHTML = `
+      <div class="team-header"><div><h2>Refi Opportunities</h2>
+        <p>Funded clients whose locked rate now sits well above the market — surfaced automatically from the weekly rate scan.</p></div></div>
+      ${fundedCount === 0
+        ? emptyCTA('📉', 'Import funded loans to turn this on',
+            'The weekly rate scan compares each funded client\'s note rate to today\'s market. Import your past funded loans (with rate and close date) and opportunities show up here automatically.',
+            [['Import funded loans', 'openImport()']])
+        : emptyCTA('📡', 'Watching ' + fundedCount + ' funded loan' + (fundedCount === 1 ? '' : 's'),
+            'No client is far enough above market yet. When rates drop, matches appear here and as tasks. Add more past funded loans to widen the net.',
+            [['Import more funded loans', 'openImport()', true]])}
+    `;
+    return;
+  }
   wrap.innerHTML = `
     <div class="team-header">
       <div>
@@ -2483,7 +2599,7 @@ function renderContacts() {
   `;
 
   const listHTML = filtered.length === 0
-    ? `<div class="empty-state"><div class="icon">🤝</div><h3>No contacts yet</h3><p>Realtors, inspectors, title companies, and other referral partners live here — separate from your borrower pipeline.</p></div>`
+    ? `<div class="empty-state"><div class="icon">🤝</div><h3>No contacts yet</h3><p>Realtors, inspectors, title companies, and other referral partners live here — separate from your borrower pipeline. Partners you add get automatic milestone updates on shared files.</p><div class="cta-row"><button class="cta-btn" onclick="openNewContact()">+ Add referral partner</button></div></div>`
     : filtered.map(c => `
       <div class="contact-card" onclick="openContact('${c.id}')">
         <div class="contact-card-avatar">${contactInitials(c)}</div>
@@ -3044,7 +3160,8 @@ function renderList() {
     listEl.innerHTML = `<div class="empty-state">
       <div class="icon">📋</div>
       <h3>${leads.length === 0 ? 'No pipeline records' : 'No matching files'}</h3>
-      <p>${leads.length === 0 ? 'Click "+ Add lead" to log your first loan application.' : 'Adjust search terms or active stage filter.'}</p>
+      <p>${leads.length === 0 ? 'Import your past clients (CSV or Excel) to fill your pipeline in one step, or add a single file by hand.' : 'Adjust search terms or active stage filter.'}</p>
+      ${leads.length === 0 ? `<div class="cta-row"><button class="cta-btn" onclick="openImport()">Import past clients</button><button class="cta-btn secondary" onclick="openNewLead()">+ Add lead</button></div>` : ''}
     </div>`;
     return;
   }
@@ -3409,9 +3526,19 @@ function renderCalendar() {
   const wrap = document.getElementById('calendarWrap');
   if (!selectedCalDay) selectedCalDay = todayStr();
   const eventMap = buildEventMap();
+  const hasEvents = Object.keys(eventMap || {}).some(k => (eventMap[k] || []).length);
   if (calendarView === 'week') renderCalendarWeek(wrap, eventMap);
   else if (calendarView === 'day') renderCalendarDay(wrap, eventMap);
   else renderCalendarMonth(wrap, eventMap);
+  if (!hasEvents) {
+    wrap.insertAdjacentHTML('afterbegin', `<div class="results-empty" style="margin:16px 0">
+      <b>Nothing scheduled yet.</b>
+      Follow-ups, closings, and rate-lock expirations from your files show up here automatically.
+      ${leads.length === 0
+        ? `<div style="margin-top:10px"><button class="cta-btn" onclick="openImport()">Import past clients</button></div>`
+        : `<div style="margin-top:10px"><button class="cta-btn" onclick="openCalAddForm()">+ Schedule a follow-up</button></div>`}
+    </div>`);
+  }
 }
 
 function renderActivityLog() {
@@ -3943,6 +4070,273 @@ function renderSkeleton() {
     </div>
   `).join('');
 }
+
+// ================= Results / Campaigns / Settings (local draft) =================
+// Data sources:
+//   reactivation_campaigns  — existing table (one row per enrolled lead).
+//   reactivation_events     — PROPOSED table, fed by n8n (see migrations/2026-10-31_reactivation_events_and_settings.sql).
+// If reactivation_events doesn't exist yet, the UI falls back to campaign statuses and shows "—" for calls booked.
+let reactCampaigns = [];
+let reactEvents = [];
+let reactEventsAvailable = false;
+let reactLoaded = false;
+
+const SETTINGS_DEFAULTS = {
+  nmls: '',
+  avg_loan_amount: 325000,
+  comp_bps: 100,          // LO comp in basis points of loan amount (100 bps = 1.00%)
+  close_rate_pct: 15,     // % of leads back in pipeline expected to fund
+  notify_hot_lead_sms: true,
+  notify_hot_lead_email: true,
+  notify_daily_digest: false,
+  notify_weekly_results: true,
+  onboarding_dismissed: false,
+};
+let appSettings = { ...SETTINGS_DEFAULTS };
+let settingsInProfile = false;
+
+function settingsKey() { return 'hubcrm_settings_' + (currentUserId || 'anon'); }
+function loadSettings() {
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem(settingsKey()) || '{}'); } catch (e) { local = {}; }
+  const fromProfile = (myProfile && myProfile.settings && typeof myProfile.settings === 'object') ? myProfile.settings : null;
+  settingsInProfile = !!(myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'settings'));
+  appSettings = { ...SETTINGS_DEFAULTS, ...local, ...(fromProfile || {}) };
+  if (myProfile && myProfile.nmls_id) appSettings.nmls = myProfile.nmls_id;
+}
+
+async function loadReactivationData() {
+  try {
+    const { data, error } = await supabase.from('reactivation_campaigns').select('*');
+    reactCampaigns = error ? [] : (data || []);
+  } catch (e) { reactCampaigns = []; }
+  try {
+    const { data, error } = await supabase.from('reactivation_events')
+      .select('*').order('occurred_at', { ascending: false }).limit(500);
+    if (error) { reactEventsAvailable = false; reactEvents = []; }
+    else { reactEventsAvailable = true; reactEvents = data || []; }
+  } catch (e) { reactEventsAvailable = false; reactEvents = []; }
+  reactLoaded = true;
+}
+
+function computeResults() {
+  const enrolled = reactCampaigns.length;
+  let conversations, callsBooked;
+  if (reactEventsAvailable) {
+    const replyLeads = new Set(reactEvents.filter(e => e.event_type === 'reply_received').map(e => e.lead_id || e.campaign_id));
+    conversations = replyLeads.size;
+    callsBooked = reactEvents.filter(e => e.event_type === 'call_booked').length;
+  } else {
+    conversations = reactCampaigns.filter(c => ['responded', 'converted'].includes(c.status)).length;
+    callsBooked = null; // unknown without events table
+  }
+  const avg = Number(appSettings.avg_loan_amount) || 0;
+  const bps = Number(appSettings.comp_bps) || 0;
+  const closeRate = (Number(appSettings.close_rate_pct) || 0) / 100;
+  const perLoan = avg * bps / 10000;
+  // Dollars tie only to leads back in pipeline (campaign converted = lead moved off Dead). Calls booked carry no dollars.
+  const backInPipeline = reactCampaigns.filter(c => c.status === 'converted').length;
+  const estCommission = backInPipeline * closeRate * avg * bps / 10000;
+  return { enrolled, conversations, callsBooked, backInPipeline, estCommission, perLoan, closeRate, basisLabel: 'leads back in pipeline' };
+}
+
+function renderResultsStrip() {
+  if (!reactLoaded) return '';
+  const r = computeResults();
+  if (r.enrolled === 0 && r.conversations === 0) {
+    return `<div class="results-empty"><b>Your results will show here.</b>
+      Results appear once your reactivation campaign starts: conversations started, calls booked, and estimated commission recovered.
+      ${leads.length ? `<button class="link-btn" onclick="setView('campaigns')">See campaign status</button>` : ''}</div>`;
+  }
+  return `
+    <div class="today-section-title" style="margin-bottom:10px">Reactivation Results <span class="today-section-count">all time</span></div>
+    <div class="results-strip">
+      <div class="results-card"><div class="lbl">Conversations started</div><div class="val cobalt">${r.conversations}</div><div class="sub">of ${r.enrolled} past clients contacted</div></div>
+      <div class="results-card"><div class="lbl">Calls booked</div><div class="val">${r.callsBooked === null ? '—' : r.callsBooked}</div><div class="sub">${r.callsBooked === null ? 'Connect your calendar to track' : 'count only, no dollars'}</div></div>
+      <div class="results-card"><div class="lbl">Est. commission recovered</div><div class="val money">${fmtCurrency(Math.round(r.estCommission))}</div><div class="sub">Estimate · edit in Settings</div></div>
+    </div>
+    <div class="results-note">Estimate = ${r.backInPipeline} ${r.backInPipeline === 1 ? 'lead' : 'leads'} back in pipeline × ${Math.round(r.closeRate * 100)}% close rate × ${fmtCurrency(Math.round(r.perLoan))} avg commission per loan. <button class="link-btn" onclick="setView('settings')">Edit assumptions</button></div>`;
+}
+
+function renderOnboarding() {
+  if (leads.length > 0 || appSettings.onboarding_dismissed) return '';
+  return `
+    <div class="onboard-card">
+      <button class="onboard-dismiss" onclick="dismissOnboarding()">Dismiss ✕</button>
+      <h3>Let's get your first results</h3>
+      <p>Three steps. Most loan officers finish in under 15 minutes.</p>
+      <div class="onboard-step next"><div class="onboard-num">1</div><div class="onboard-step-body">
+        <div class="onboard-step-title">Import your past clients</div>
+        <div class="onboard-step-text">Upload a CSV or Excel export from your LOS or old CRM. Funded loans also power Refi Alerts.</div>
+        <div style="margin-top:8px"><button class="cta-btn" onclick="openImport()">Import past clients</button></div></div></div>
+      <div class="onboard-step"><div class="onboard-num">2</div><div class="onboard-step-body">
+        <div class="onboard-step-title">Review your list</div>
+        <div class="onboard-step-text">Check names and phone numbers in Pipeline, and remove anyone who shouldn't be contacted.</div></div></div>
+      <div class="onboard-step"><div class="onboard-num">3</div><div class="onboard-step-body">
+        <div class="onboard-step-title">Launch reactivation</div>
+        <div class="onboard-step-text">Enroll past clients in the automated 3-touch text + email sequence. Replies become hot-lead tasks for you.</div></div></div>
+    </div>`;
+}
+function dismissOnboarding() { appSettings.onboarding_dismissed = true; persistSettingsLocal(); renderToday(); }
+
+function emptyCTA(icon, title, text, buttons) {
+  return `<div class="empty-state compact"><div class="icon">${icon}</div><h3>${title}</h3><p>${text}</p>
+    <div class="cta-row">${(buttons || []).map(([label, fn, secondary]) => `<button class="cta-btn${secondary ? ' secondary' : ''}" onclick="${fn}">${label}</button>`).join('')}</div></div>`;
+}
+
+const EVENT_LABELS = {
+  message_sent: 'Message sent', reply_received: 'Replied', call_booked: 'Call booked',
+  opted_out: 'Opted out', converted: 'Back in pipeline', funded: 'Loan funded',
+};
+
+async function renderCampaigns() {
+  const wrap = document.getElementById('campaignsWrap');
+  if (!reactLoaded) { wrap.innerHTML = `<div class="today-empty">Loading campaign status...</div>`; await loadReactivationData(); }
+  const r = computeResults();
+  const c = reactCampaigns;
+  const header = `<div class="team-header"><div><h2>Reactivation Campaigns</h2>
+    <p>Read-only view of the automated outreach running on your past clients. It runs on its own schedule; you only step in when someone replies.</p></div></div>`;
+  if (c.length === 0) {
+    wrap.innerHTML = header + emptyCTA('📣', 'No campaign running yet',
+      leads.length === 0
+        ? 'Import your past clients first. Then open any past-client or dead file and tap "Enroll in Database Reactivation", and the 3-touch sequence starts on the next daily run.'
+        : 'Open a past-client or dead file in Pipeline and tap "Enroll in Database Reactivation". The first message goes out on the next daily run and progress shows here.',
+      leads.length === 0 ? [['Import past clients', 'openImport()']] : [['Go to Pipeline', "setView('list')"]]);
+    return;
+  }
+  const count = st => c.filter(x => x.status === st).length;
+  const active = c.filter(x => x.status === 'active' && !x.dnc).length;
+  const touched = c.filter(x => (x.sequence_step || 0) > 0).length;
+  const optedOut = c.filter(x => x.dnc).length;
+  const nextTouch = c.filter(x => x.status === 'active' && x.next_touch_date).map(x => x.next_touch_date).sort()[0];
+
+  let activity;
+  if (reactEventsAvailable && reactEvents.length) {
+    activity = reactEvents.slice(0, 25).map(e => `
+      <div class="today-card" ${e.lead_id ? `onclick="openLead('${e.lead_id}')"` : ''}>
+        <div class="today-card-dot ${e.event_type === 'call_booked' || e.event_type === 'funded' ? 'closing' : e.event_type === 'reply_received' ? 'due' : 'upcoming'}"></div>
+        <div class="today-card-info">
+          <div class="today-card-name">${escapeHtml(leadNameById(e.lead_id) || 'Past client')}</div>
+          <div class="today-card-detail">${EVENT_LABELS[e.event_type] || escapeHtml(e.event_type || '')}${e.channel ? ' · ' + escapeHtml(e.channel) : ''} · ${e.occurred_at ? fmtDateTime(e.occurred_at) : ''}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    const recent = [...c].sort((a, b) => String(b.updated_at || b.created_at || '').localeCompare(String(a.updated_at || a.created_at || ''))).slice(0, 25);
+    activity = recent.map(x => `
+      <div class="today-card" ${x.lead_id ? `onclick="openLead('${x.lead_id}')"` : ''}>
+        <div class="today-card-dot ${x.status === 'converted' ? 'closing' : x.status === 'responded' ? 'due' : 'upcoming'}"></div>
+        <div class="today-card-info">
+          <div class="today-card-name">${escapeHtml(leadNameById(x.lead_id) || 'Past client')}</div>
+          <div class="today-card-detail">${escapeHtml(x.dnc ? 'opted out' : (x.status || ''))} · touch ${x.sequence_step || 0} of 3${x.next_touch_date && x.status === 'active' ? ' · next ' + fmtDate(x.next_touch_date) : ''}</div>
+        </div>
+      </div>`).join('');
+  }
+  wrap.innerHTML = header + `
+    <div class="dr-stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <div class="dr-stat-card"><div class="dr-stat-label">Enrolled</div><div class="dr-stat-value">${c.length}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Active in sequence</div><div class="dr-stat-value cobalt">${active}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Contacted</div><div class="dr-stat-value copper">${touched}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Conversations</div><div class="dr-stat-value cobalt">${r.conversations}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Calls booked</div><div class="dr-stat-value">${r.callsBooked === null ? '—' : r.callsBooked}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Back in pipeline</div><div class="dr-stat-value" style="color:var(--success)">${count('converted')}</div></div>
+      <div class="dr-stat-card"><div class="dr-stat-label">Opted out</div><div class="dr-stat-value">${optedOut}</div></div>
+    </div>
+    ${nextTouch ? `<div class="results-note">Next scheduled touch: <b>${fmtDate(nextTouch)}</b></div>` : ''}
+    <div class="today-section">
+      <div class="today-section-title">Recent activity</div>
+      ${activity || '<div class="today-empty">No activity yet. The first messages go out on the next daily run.</div>'}
+      ${!reactEventsAvailable ? '<div class="results-note" style="margin-top:10px">Showing campaign status. Message-level activity appears once event tracking is enabled.</div>' : ''}
+    </div>`;
+}
+
+function renderSettings() {
+  const wrap = document.getElementById('settingsWrap');
+  const s = appSettings;
+  const perLoan = (Number(s.avg_loan_amount) || 0) * (Number(s.comp_bps) || 0) / 10000;
+  wrap.innerHTML = `
+    <div class="team-header"><div><h2>Settings</h2><p>Your profile, alerts, and the assumptions behind your results estimate.</p></div></div>
+    <div class="settings-section">
+      <h3>Profile</h3><div class="hint">Shown on letters and partner updates.</div>
+      <div class="settings-grid">
+        <div class="settings-field"><label for="set_name">Full name</label><input id="set_name" value="${escapeHtml(myProfile?.full_name || '')}"></div>
+        <div class="settings-field"><label for="set_nmls">NMLS #</label><input id="set_nmls" inputmode="numeric" value="${escapeHtml(s.nmls || '')}"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Notifications</h3><div class="hint">How you hear about hot leads and results.</div>
+      <label class="settings-check"><input type="checkbox" id="set_n_sms" ${s.notify_hot_lead_sms ? 'checked' : ''}> Text me when a past client replies</label>
+      <label class="settings-check"><input type="checkbox" id="set_n_email" ${s.notify_hot_lead_email ? 'checked' : ''}> Email me when a past client replies</label>
+      <label class="settings-check"><input type="checkbox" id="set_n_digest" ${s.notify_daily_digest ? 'checked' : ''}> Daily task digest</label>
+      <label class="settings-check"><input type="checkbox" id="set_n_weekly" ${s.notify_weekly_results ? 'checked' : ''}> Weekly results summary</label>
+    </div>
+    <div class="settings-section">
+      <h3>Commission estimate</h3><div class="hint">Used only for the "Est. commission recovered" number on Today: leads back in pipeline × close rate × commission per loan. It's an estimate, not booked revenue.</div>
+      <div class="settings-grid">
+        <div class="settings-field"><label for="set_avg">Average loan amount ($)</label><input id="set_avg" type="number" min="0" step="1000" value="${Number(s.avg_loan_amount) || 0}"></div>
+        <div class="settings-field"><label for="set_bps">Your comp (basis points)</label><input id="set_bps" type="number" min="0" step="5" value="${Number(s.comp_bps) || 0}"><div class="hint">100 bps = 1%. Brokers often use about 150 bps.</div></div>
+        <div class="settings-field"><label for="set_close">Leads back in pipeline that fund (%)</label><input id="set_close" type="number" min="0" max="100" step="1" value="${Number(s.close_rate_pct) || 0}"></div>
+        <div class="settings-field"><label>Commission per funded loan</label><input disabled value="${fmtCurrency(Math.round(perLoan))}"></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>Billing</h3><div class="hint">Update your card, download invoices, or change your plan.</div>
+      <!-- TODO(Pedro): replace with the Stripe customer portal link (Stripe Dashboard > Settings > Billing > Customer portal) or a server endpoint that creates a portal session. -->
+      <button class="cta-btn secondary" onclick="openBillingPortal()">Manage billing</button>
+    </div>
+    <div class="cta-row" style="justify-content:flex-start"><button class="cta-btn" onclick="saveSettings()">Save settings</button>
+      ${appSettings.onboarding_dismissed ? `<button class="cta-btn secondary" onclick="resetOnboarding()">Show setup checklist again</button>` : ''}</div>
+    ${settingsInProfile ? '' : '<div class="results-note" style="margin-top:10px">Saved on this device for now. Sync across devices turns on after the settings migration.</div>'}
+  `;
+}
+
+const BILLING_PORTAL_URL = ''; // TODO(Pedro): Stripe customer portal login link
+function openBillingPortal() {
+  if (BILLING_PORTAL_URL) window.open(BILLING_PORTAL_URL, '_blank', 'noopener');
+  else showToast('Billing portal coming soon. Email optimizedhubllc@gmail.com for billing changes.');
+}
+
+function persistSettingsLocal() {
+  try { localStorage.setItem(settingsKey(), JSON.stringify(appSettings)); } catch (e) {}
+}
+
+async function saveSettings() {
+  const v = id => document.getElementById(id);
+  appSettings = {
+    ...appSettings,
+    nmls: v('set_nmls').value.trim(),
+    avg_loan_amount: Math.max(0, Number(v('set_avg').value) || 0),
+    comp_bps: Math.max(0, Number(v('set_bps').value) || 0),
+    close_rate_pct: Math.min(100, Math.max(0, Number(v('set_close').value) || 0)),
+    notify_hot_lead_sms: v('set_n_sms').checked,
+    notify_hot_lead_email: v('set_n_email').checked,
+    notify_daily_digest: v('set_n_digest').checked,
+    notify_weekly_results: v('set_n_weekly').checked,
+  };
+  persistSettingsLocal();
+  const name = v('set_name').value.trim();
+  try {
+    const patch = {};
+    if (name && name !== myProfile?.full_name) patch.full_name = name;
+    if (settingsInProfile) patch.settings = appSettings;
+    if (myProfile && Object.prototype.hasOwnProperty.call(myProfile, 'nmls_id')) patch.nmls_id = appSettings.nmls || null;
+    if (Object.keys(patch).length) {
+      const { error } = await supabase.from('profiles').update(patch).eq('id', currentUserId);
+      if (error) throw error;
+      Object.assign(myProfile, patch);
+    }
+    showToast('Settings saved');
+  } catch (err) {
+    showToast('Saved on this device. Profile sync failed: ' + err.message);
+  }
+  renderSettings();
+}
+function resetOnboarding() { appSettings.onboarding_dismissed = false; persistSettingsLocal(); setView('today'); }
+
+window.renderCampaigns = renderCampaigns;
+window.dismissOnboarding = dismissOnboarding;
+window.saveSettings = saveSettings;
+window.resetOnboarding = resetOnboarding;
+window.openBillingPortal = openBillingPortal;
 
 async function loadLeads() {
   renderSkeleton();
