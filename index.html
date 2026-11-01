@@ -2112,9 +2112,11 @@ async function enrollInReactivation(leadId) {
   if (!l.phone) { showToast('Add a phone number before enrolling.'); return; }
   const existing = await getActiveCampaign(leadId);
   if (existing) { showToast('Already enrolled in reactivation.'); return; }
+  const startStatus = l.status; // capture before the status is moved back to a live stage
   try {
     const { error: campErr } = await supabase.from('reactivation_campaigns').insert({
       lead_id: leadId,
+      start_status: startStatus,
       owner_lo: l.created_by || currentUserId,
       brokerage_id: myProfile?.brokerage_id || null,
       status: 'active',
